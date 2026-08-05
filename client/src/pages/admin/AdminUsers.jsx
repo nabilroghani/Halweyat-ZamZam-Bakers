@@ -1,11 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthService, fetchAPI } from '../../services/api';
-import { FiUsers, FiUserPlus, FiShield, FiX, FiCheck } from 'react-icons/fi';
+import { useAuthStore } from '../../store/useAuthStore';
+import { FiUsers, FiUserPlus, FiShield, FiX, FiCheck, FiLock } from 'react-icons/fi';
 
 export default function AdminUsers() {
+  const { user } = useAuthStore();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  if (user?.role === 'receptionist') {
+    return (
+      <div className="min-h-screen bg-[#0d0d11] text-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-[#14141a] border border-amber-500/20 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+          <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl mx-auto flex items-center justify-center text-amber-400 text-3xl">
+            <FiLock />
+          </div>
+          <h2 className="text-xl font-bold font-serif gold-gradient-text">Admin Access Restricted</h2>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Staff & RBAC account management is restricted to Store Managers & Admins. Receptionists manage counter orders and receipts.
+          </p>
+          <Link
+            to="/admin/orders"
+            className="inline-block px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition"
+          >
+            Go to Counter Orders Desk →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Staff creation modal
   const [isModalOpen, setIsModalOpen] = useState(false);

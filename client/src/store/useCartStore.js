@@ -23,7 +23,7 @@ export const useCartStore = create(
         if (existingIndex > -1) {
           const updated = [...currentCart];
           updated[existingIndex].quantity += quantity;
-          set({ cart: updated, isCartOpen: true });
+          set({ cart: updated });
         } else {
           set({
             cart: [
@@ -37,8 +37,7 @@ export const useCartStore = create(
                 selectedOption: option,
                 quantity
               }
-            ],
-            isCartOpen: true
+            ]
           });
         }
       },
@@ -64,9 +63,9 @@ export const useCartStore = create(
 
       clearCart: () => set({ cart: [] }),
 
-      // Computed Totals
+      // Computed Totals (Unique Items Count for Badge)
       getTotalItemsCount: () => {
-        return get().cart.reduce((acc, item) => acc + item.quantity, 0);
+        return get().cart.length;
       },
 
       getSubtotal: () => {

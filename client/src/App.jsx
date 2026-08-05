@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -15,16 +15,18 @@ import CustomCakeBuilder from './pages/CustomCakeBuilder';
 import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Gallery from './pages/Gallery';
 
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerRegister from './pages/CustomerRegister';
 import CustomerOrders from './pages/CustomerOrders';
 
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+
+import NotFound from './pages/NotFound';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -57,6 +59,7 @@ export default function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/gallery" element={<Gallery />} />
 
               {/* Customer Auth Routes */}
               <Route path="/login" element={<CustomerLogin />} />
@@ -70,8 +73,10 @@ export default function App() {
                 } 
               />
 
+              {/* Legacy admin login redirect to unified login */}
+              <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+
               {/* Staff & Admin RBAC Protected Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
               <Route 
                 path="/admin/dashboard" 
                 element={
@@ -104,6 +109,9 @@ export default function App() {
                   </ProtectedRoute>
                 } 
               />
+
+              {/* 404 Catch-All Fallback Route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />

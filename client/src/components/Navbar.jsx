@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { FiShoppingBag, FiMenu, FiX, FiUser, FiPhoneCall, FiPieChart, FiLogOut } from 'react-icons/fi';
+import { FiShoppingBag, FiMenu, FiX, FiUser, FiPhoneCall, FiPieChart, FiLogOut, FiBox, FiUsers, FiGlobe } from 'react-icons/fi';
 
 export default function Navbar() {
   const { toggleCart, getTotalItemsCount } = useCartStore();
@@ -12,6 +12,7 @@ export default function Navbar() {
 
   const totalItemsCount = getTotalItemsCount();
   const isActive = (path) => location.pathname === path;
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -21,6 +22,93 @@ export default function Navbar() {
     { name: 'Contact', path: '/contact' }
   ];
 
+  const isReceptionist = user?.role === 'receptionist';
+
+  const adminNavLinks = isReceptionist
+    ? [
+        { name: 'Counter Orders Desk', path: '/admin/orders', icon: <FiShoppingBag /> },
+        { name: 'Menu Catalog & Stock', path: '/admin/products', icon: <FiBox /> }
+      ]
+    : [
+        { name: 'Executive Dashboard', path: '/admin/dashboard', icon: <FiPieChart /> },
+        { name: 'Product Catalog', path: '/admin/products', icon: <FiBox /> },
+        { name: 'Live Orders Desk', path: '/admin/orders', icon: <FiShoppingBag /> },
+        { name: 'Staff & RBAC Users', path: '/admin/users', icon: <FiUsers /> }
+      ];
+
+  // If inside Admin Panel, render dedicated Operations Topbar
+  if (isAdminRoute) {
+    return (
+      <header className="sticky top-0 z-40 bg-[#121216]/95 backdrop-blur-md border-b border-amber-500/30 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Brand Logo (Role Dependent) */}
+            <Link to={isReceptionist ? "/admin/orders" : "/admin/dashboard"} className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 p-[1px] shadow-lg">
+                <div className="w-full h-full bg-[#181820] rounded-xl flex items-center justify-center font-serif text-xl font-black text-amber-400">
+                  {isReceptionist ? 'R' : 'Z'}
+                </div>
+              </div>
+              <div>
+                <span className="block text-sm font-extrabold font-serif tracking-wider gold-gradient-text">
+                  {isReceptionist ? 'RECEPTIONIST DESK' : 'ZAMZAM EXECUTIVE'}
+                </span>
+                <span className="block text-[9px] tracking-[0.2em] text-amber-300/60 uppercase font-sans">
+                  {isReceptionist ? 'Counter Billing & Expediting' : 'Manager Operations Console'}
+                </span>
+              </div>
+            </Link>
+
+            {/* Desktop Admin Nav Links */}
+            <nav className="hidden md:flex items-center gap-6">
+              {adminNavLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`flex items-center gap-2 text-xs font-bold transition-all px-3 py-1.5 rounded-lg ${
+                    isActive(link.path)
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                      : 'text-gray-300 hover:text-amber-300 hover:bg-white/5'
+                  }`}
+                >
+                  {link.icon}
+                  <span>{link.name}</span>
+                </Link>
+              ))}
+            </nav>
+
+            {/* Right Admin Controls */}
+            <div className="flex items-center gap-3">
+              <Link
+                to="/"
+                target="_blank"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 hover:bg-amber-500/20 transition font-semibold"
+                title="Open customer storefront in new tab"
+              >
+                <FiGlobe className="text-amber-400" />
+                <span>View Storefront ↗</span>
+              </Link>
+
+              <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-md">
+                {user?.role || 'STAFF'}
+              </span>
+
+              <button
+                onClick={logout}
+                className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition"
+                title="Sign Out"
+              >
+                <FiLogOut />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Standard Storefront Navbar
   return (
     <header className="sticky top-0 z-40 bg-[#0d0d11]/90 backdrop-blur-md border-b border-amber-500/20 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

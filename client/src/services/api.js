@@ -68,3 +68,8 @@ export const ContactService = {
   submit: (formData) => fetchAPI('/contact', { method: 'POST', body: JSON.stringify(formData) }),
   getAll: () => fetchAPI('/contact')
 };
+
+export const UserService = {
+  ...AuthService,
+  getAll: () => fetchAPI('/auth/users')
+};

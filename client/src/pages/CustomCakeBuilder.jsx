@@ -27,6 +27,7 @@ export default function CustomCakeBuilder() {
   const [selectedShape, setSelectedShape] = useState(shapes[0]);
   const [toppingMessage, setToppingMessage] = useState('Happy Birthday!');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [added, setAdded] = useState(false);
 
   const calculatedPrice = Math.round(selectedWeight.basePrice * selectedFlavor.priceMultiplier);
 
@@ -36,11 +37,21 @@ export default function CustomCakeBuilder() {
       name: `Custom ${selectedShape} Cake (${selectedFlavor.name})`,
       price: calculatedPrice,
       imageUrl: selectedFlavor.img,
-      unit: 'Lb'
+      unit: 'Lb',
+      isCustomCake: true,
+      customCakeDetails: {
+        flavor: selectedFlavor.name,
+        weight: selectedWeight.name,
+        shape: selectedShape,
+        toppingMessage: toppingMessage || 'No text requested',
+        specialInstructions: specialInstructions || ''
+      }
     };
 
-    const detailsStr = `${selectedWeight.name} • ${selectedShape} • Msg: "${toppingMessage}"`;
+    const detailsStr = `${selectedWeight.name} • ${selectedShape} • Msg: "${toppingMessage || 'No text'}"`;
     addToCart(customCakeProduct, 1, detailsStr);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
   };
 
   const handleDirectWhatsApp = () => {
@@ -114,9 +125,13 @@ export default function CustomCakeBuilder() {
             <div className="space-y-3">
               <button
                 onClick={handleAddToCart}
-                className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 transition"
+                className={`w-full py-3.5 font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-xl transition ${
+                  added
+                    ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                }`}
               >
-                <FiShoppingBag className="text-lg" /> Add Custom Cake to Cart
+                <FiShoppingBag className="text-lg" /> {added ? 'Added Custom Cake to Cart!' : 'Add Custom Cake to Cart'}
               </button>
 
               <button

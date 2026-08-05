@@ -43,8 +43,8 @@ export default function CustomerLogin() {
           <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl mx-auto flex items-center justify-center text-amber-400 text-2xl mb-3">
             <FiUserCheck />
           </div>
-          <h2 className="text-2xl font-bold font-serif gold-gradient-text">Customer & Staff Sign In</h2>
-          <p className="text-xs text-gray-400 mt-1">Sign in to complete your checkout and manage orders</p>
+          <h2 className="text-2xl font-bold font-serif gold-gradient-text">Sign In to Your Account</h2>
+          <p className="text-xs text-gray-400 mt-1">Enter your email and password to access your account</p>
         </div>
 
         {error && (
@@ -85,17 +85,16 @@ export default function CustomerLogin() {
             disabled={loading}
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition"
           >
-            {loading ? 'Signing In...' : 'Sign In & Continue'}
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="text-center text-xs text-gray-400 pt-2 border-t border-amber-500/10 flex justify-between">
-          <Link to={`/register${redirectPath ? `?redirect=${redirectPath}` : ''}`} className="text-amber-400 font-bold hover:underline">
-            Register New Account
-          </Link>
-          <Link to="/admin/login" className="text-gray-500 hover:text-amber-300">
-            Staff Portal Login
-          </Link>
+        <div className="text-center text-xs text-gray-400 pt-2 border-t border-amber-500/10 flex justify-center">
+          <p>Don't have an account?{' '}
+            <Link to={`/register${redirectPath ? `?redirect=${redirectPath}` : ''}`} className="text-amber-400 font-bold hover:underline ml-1">
+              Register New Account
+            </Link>
+          </p>
         </div>
 
       </div>

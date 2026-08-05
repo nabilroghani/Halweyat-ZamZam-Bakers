@@ -33,6 +33,15 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'No items in order' });
     }
 
+    const cleanedItems = items.map(it => ({
+      product: (it.product && mongoose.Types.ObjectId.isValid(it.product)) ? it.product : null,
+      name: it.name,
+      price: it.price,
+      quantity: it.quantity,
+      selectedOption: it.selectedOption || '',
+      imageUrl: it.imageUrl || ''
+    }));
+
     const orderData = {
       orderId: generateOrderId(),
       customerName,
@@ -40,7 +49,7 @@ router.post('/', async (req, res) => {
       customerAddress: customerAddress || '',
       orderType: orderType || 'Pickup',
       branch: branch || 'Timergara Main Branch',
-      items,
+      items: cleanedItems,
       totalAmount,
       paymentMethod: paymentMethod || 'Cash on Delivery',
       status: 'Pending',

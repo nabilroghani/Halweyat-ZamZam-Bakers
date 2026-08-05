@@ -20,6 +20,7 @@ export default function AdminProducts() {
   const [category, setCategory] = useState('Sweets');
   const [imageUrl, setImageUrl] = useState('');
   const [unit, setUnit] = useState('Kg');
+  const [weightOptionsInput, setWeightOptionsInput] = useState('250g, 500g, 1 Kg, 2 Kg');
   const [isFeatured, setIsFeatured] = useState(false);
 
   const loadProducts = async () => {
@@ -47,6 +48,7 @@ export default function AdminProducts() {
     setCategory('Sweets');
     setImageUrl('https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600');
     setUnit('Kg');
+    setWeightOptionsInput('250g, 500g, 1 Kg, 2 Kg');
     setIsFeatured(false);
     setIsModalOpen(true);
   };
@@ -59,14 +61,46 @@ export default function AdminProducts() {
     setOriginalPrice(p.originalPrice || 0);
     setCategory(p.category);
     setImageUrl(p.imageUrl);
-    setUnit(p.unit || 'Kg');
+    setUnit(p.unit || 'Piece');
+    setWeightOptionsInput(p.weightOptions && p.weightOptions.length > 0 ? p.weightOptions.join(', ') : '');
     setIsFeatured(p.isFeatured || false);
     setIsModalOpen(true);
+  };
+
+  const handleCategoryChange = (newCat) => {
+    setCategory(newCat);
+    if (!editingProduct) {
+      if (newCat === 'Fast Food') {
+        setUnit('Piece');
+        setWeightOptionsInput('Small, Medium, Large, Family');
+      } else if (newCat === 'Cakes' || newCat === 'Custom Cakes') {
+        setUnit('Pound');
+        setWeightOptionsInput('1.5 Lb, 2 Lb, 3 Lb, 5 Lb');
+      } else if (newCat === 'Sweets' || newCat === 'Nimko & Snacks') {
+        setUnit('Kg');
+        setWeightOptionsInput('250g, 500g, 1 Kg, 2 Kg');
+      } else if (newCat === 'Bakery Items') {
+        setUnit('Piece');
+        setWeightOptionsInput('1 Piece, Box of 6, Box of 12');
+      } else if (newCat === 'Deals') {
+        setUnit('Pack');
+        setWeightOptionsInput('Standard Combo');
+      }
+    }
+  };
+
+  const applyPreset = (presetUnit, presetOptions) => {
+    setUnit(presetUnit);
+    setWeightOptionsInput(presetOptions);
   };
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     try {
+      const weightOptionsArray = weightOptionsInput
+        ? weightOptionsInput.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
       const payload = {
         name,
         description,
@@ -74,7 +108,8 @@ export default function AdminProducts() {
         originalPrice: Number(originalPrice || 0),
         category,
         imageUrl,
-        unit,
+        unit: unit || 'Piece',
+        weightOptions: weightOptionsArray,
         isFeatured
       };
 
@@ -128,7 +163,7 @@ export default function AdminProducts() {
             <h1 className="text-3xl font-bold font-serif gold-gradient-text mt-1">
               Product & Menu Manager
             </h1>
-            <p className="text-xs text-gray-400">Add new bakery items, update prices, and control stock status live</p>
+            <p className="text-xs text-gray-400">Add new bakery items, set custom portion sizes/units, and control live stock</p>
           </div>
 
           <button
@@ -162,7 +197,8 @@ export default function AdminProducts() {
                   <tr className="border-b border-amber-500/10 text-gray-400 uppercase text-[10px]">
                     <th className="py-3 px-3">Item</th>
                     <th className="py-3 px-3">Category</th>
-                    <th className="py-3 px-3">Price</th>
+                    <th className="py-3 px-3">Price & Unit</th>
+                    <th className="py-3 px-3">Portion / Sizes</th>
                     <th className="py-3 px-3">Stock Status</th>
                     <th className="py-3 px-3">Featured</th>
                     <th className="py-3 px-3 text-right">Actions</th>
@@ -184,7 +220,20 @@ export default function AdminProducts() {
                         </span>
                       </td>
                       <td className="py-3 px-3 font-bold text-amber-400">
-                        Rs. {p.price} <span className="text-[10px] text-gray-500 font-normal">/{p.unit}</span>
+                        Rs. {p.price} <span className="text-[10px] text-gray-400 font-normal">/ {p.unit || 'Piece'}</span>
+                      </td>
+                      <td className="py-3 px-3 text-[10px] text-gray-400 max-w-xs">
+                        {p.weightOptions && p.weightOptions.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {p.weightOptions.map((opt, i) => (
+                              <span key={i} className="bg-[#181820] text-gray-300 border border-amber-500/10 px-1.5 py-0.5 rounded">
+                                {opt}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-600">Standard</span>
+                        )}
                       </td>
                       <td className="py-3 px-3">
                         <button
@@ -230,11 +279,11 @@ export default function AdminProducts() {
 
         {/* Add/Edit Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#14141a] border border-amber-500/20 rounded-3xl p-6 max-w-lg w-full space-y-4">
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#14141a] border border-amber-500/20 rounded-3xl p-6 max-w-lg w-full space-y-4 my-8">
               <div className="flex justify-between items-center border-b border-amber-500/20 pb-3">
                 <h3 className="text-lg font-bold font-serif text-amber-400">
-                  {editingProduct ? 'Edit Product' : 'Add New Bakery Item'}
+                  {editingProduct ? 'Edit Product Options' : 'Add New Bakery Item'}
                 </h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">
                   <FiX className="text-xl" />
@@ -246,6 +295,7 @@ export default function AdminProducts() {
                   <label className="block font-bold text-gray-300 mb-1">Item Name *</label>
                   <input 
                     type="text" required
+                    placeholder="e.g. Chicken Tikka Pizza, Gulab Jamun, Red Velvet Cake"
                     value={name} onChange={(e) => setName(e.target.value)}
                     className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
                   />
@@ -255,7 +305,7 @@ export default function AdminProducts() {
                   <div>
                     <label className="block font-bold text-gray-300 mb-1">Category *</label>
                     <select 
-                      value={category} onChange={(e) => setCategory(e.target.value)}
+                      value={category} onChange={(e) => handleCategoryChange(e.target.value)}
                       className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
                     >
                       <option value="Sweets">Sweets</option>
@@ -268,17 +318,74 @@ export default function AdminProducts() {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-gray-300 mb-1">Price (Rs.) *</label>
+                    <label className="block font-bold text-gray-300 mb-1">Base Price (Rs.) *</label>
                     <input 
                       type="number" required
+                      placeholder="e.g. 850"
                       value={price} onChange={(e) => setPrice(e.target.value)}
                       className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-gray-300 mb-1">Unit / Pricing Metric *</label>
+                    <select
+                      value={unit} onChange={(e) => setUnit(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
+                    >
+                      <option value="Piece">Piece (Pizza, Burger, Patties, Drinks)</option>
+                      <option value="Pound">Pound (Cakes)</option>
+                      <option value="Kg">Kg (Sweets, Mithai, Nimko)</option>
+                      <option value="Gram">Gram (250g, 500g)</option>
+                      <option value="Pack">Pack / Deal</option>
+                      <option value="Box">Box</option>
+                      <option value="Bottle">Bottle</option>
+                      <option value="Plate">Plate</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-300 mb-1">Original Price (Discount Slash)</label>
+                    <input 
+                      type="number" 
+                      placeholder="e.g. 1000 (Optional)"
+                      value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Weight / Portion / Size Options */}
                 <div>
-                  <label className="block font-bold text-gray-300 mb-1">Image URL / Cloudinary Link *</label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block font-bold text-gray-300">Portion / Size Options (Comma Separated)</label>
+                  </div>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Small, Medium, Large OR 1.5 Lb, 2 Lb OR 500g, 1 Kg"
+                    value={weightOptionsInput} onChange={(e) => setWeightOptionsInput(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-[11px]"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Quick Presets (Click to autofill):</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    <button type="button" onClick={() => applyPreset('Piece', 'Small, Medium, Large, Family')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
+                      🍕 Pizza Sizes
+                    </button>
+                    <button type="button" onClick={() => applyPreset('Pound', '1.5 Lb, 2 Lb, 3 Lb, 5 Lb')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
+                      🎂 Cake Pounds
+                    </button>
+                    <button type="button" onClick={() => applyPreset('Kg', '250g, 500g, 1 Kg, 2 Kg')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
+                      🍬 Sweets Weight
+                    </button>
+                    <button type="button" onClick={() => applyPreset('Piece', '1 Piece, Box of 6, Box of 12')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
+                      🥐 Bakery/Patties
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-300 mb-1">Image URL / Unsplash Link *</label>
                   <input 
                     type="url" required
                     value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
@@ -306,7 +413,7 @@ export default function AdminProducts() {
                   </label>
                 </div>
 
-                <div className="pt-4 flex justify-end gap-3">
+                <div className="pt-4 flex justify-end gap-3 border-t border-amber-500/10">
                   <button 
                     type="button" onClick={() => setIsModalOpen(false)}
                     className="px-4 py-2 bg-[#181820] text-gray-300 rounded-xl hover:bg-gray-800"

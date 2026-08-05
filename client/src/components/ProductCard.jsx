@@ -8,10 +8,18 @@ export default function ProductCard({ product }) {
   
   const weightOpts = product.weightOptions && product.weightOptions.length > 0
     ? product.weightOptions
-    : [product.unit || '1 Kg'];
+    : [product.unit ? `1 ${product.unit}` : 'Standard'];
 
   const [selectedOption, setSelectedOption] = useState(weightOpts[0]);
   const [added, setAdded] = useState(false);
+
+  const getOptionLabel = () => {
+    const cat = product.category || '';
+    if (cat.includes('Cakes')) return 'Select Weight (Pounds / Size)';
+    if (cat === 'Fast Food') return 'Select Portion / Size';
+    if (cat === 'Sweets' || cat === 'Nimko & Snacks') return 'Select Weight / Quantity';
+    return 'Select Size / Portion';
+  };
 
   const handleAddToCart = () => {
     addToCart(product, 1, selectedOption);
@@ -67,10 +75,10 @@ export default function ProductCard({ product }) {
           </p>
         </div>
 
-        {/* Weight Option Selector */}
-        {weightOpts.length > 1 && (
+        {/* Portion / Size Option Selector */}
+        {product.weightOptions && product.weightOptions.length > 0 && (
           <div>
-            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Select Weight / Portion</label>
+            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">{getOptionLabel()}</label>
             <select
               value={selectedOption}
               onChange={(e) => setSelectedOption(e.target.value)}
@@ -92,7 +100,7 @@ export default function ProductCard({ product }) {
                 <span className="text-xs text-gray-500 line-through ml-2">Rs. {product.originalPrice}</span>
               )}
             </div>
-            <span className="text-[10px] text-gray-500">per {product.unit || 'Kg'}</span>
+            <span className="text-[10px] text-gray-400 font-medium">per {product.unit || 'Piece'}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

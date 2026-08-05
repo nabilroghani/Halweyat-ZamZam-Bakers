@@ -9,7 +9,16 @@ import { FiShoppingBag } from 'react-icons/fi';
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [addedItemIds, setAddedItemIds] = useState({});
   const addToCart = useCartStore((state) => state.addToCart);
+
+  const handleHomeAddToCart = (item) => {
+    addToCart(item);
+    setAddedItemIds((prev) => ({ ...prev, [item._id]: true }));
+    setTimeout(() => {
+      setAddedItemIds((prev) => ({ ...prev, [item._id]: false }));
+    }, 1500);
+  };
 
   useEffect(() => {
     const loadFeatured = async () => {
@@ -146,14 +155,18 @@ export default function Home() {
                         <span className="text-xl font-bold font-mono text-amber-400">
                           Rs. {item.price}
                         </span>
-                        <span className="text-[10px] text-gray-500 block">per {item.unit || 'Kg'}</span>
+                        <span className="text-[10px] text-gray-500 block">per {item.unit || 'Piece'}</span>
                       </div>
 
                       <button
-                        onClick={() => addToCart(item)}
-                        className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                        onClick={() => handleHomeAddToCart(item)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                          addedItemIds[item._id]
+                            ? 'bg-emerald-500 text-slate-950 border border-emerald-400'
+                            : 'bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/30'
+                        }`}
                       >
-                        <FiShoppingBag /> Add to Cart
+                        <FiShoppingBag /> {addedItemIds[item._id] ? 'Added!' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>

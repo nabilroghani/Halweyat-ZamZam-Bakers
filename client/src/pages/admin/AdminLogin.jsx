@@ -4,8 +4,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { FiLock, FiMail, FiShield } from 'react-icons/fi';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@zamzam.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,13 +45,6 @@ export default function AdminLogin() {
             {error}
           </div>
         )}
-
-        {/* Credentials Tip Badge */}
-        <div className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-amber-300 text-[11px] space-y-1">
-          <p className="font-bold">🔑 Default Demo Login Accounts:</p>
-          <p>• <strong>Admin</strong>: <span className="font-mono">admin@zamzam.com</span> / <span className="font-mono">admin123</span></p>
-          <p>• <strong>Receptionist</strong>: <span className="font-mono">reception@zamzam.com</span> / <span className="font-mono">reception123</span></p>
-        </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

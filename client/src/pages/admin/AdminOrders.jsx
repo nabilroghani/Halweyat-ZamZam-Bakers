@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { OrderService } from '../../services/api';
-import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX } from 'react-icons/fi';
+import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX, FiPlus, FiPhone, FiUser } from 'react-icons/fi';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -10,6 +10,17 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
 
   const [selectedReceipt, setSelectedReceipt] = useState(null);
+
+  // Counter POS Order Modal State
+  const [isPosOpen, setIsPosOpen] = useState(false);
+  const [posCustomerName, setPosCustomerName] = useState('');
+  const [posCustomerPhone, setPosCustomerPhone] = useState('');
+  const [posOrderType, setPosOrderType] = useState('Pickup');
+  const [posItemName, setPosItemName] = useState('Special Shahi Gulab Jamun');
+  const [posOption, setPosOption] = useState('1 Kg');
+  const [posPrice, setPosPrice] = useState('850');
+  const [posQuantity, setPosQuantity] = useState('1');
+  const [posSubmitting, setPosSubmitting] = useState(false);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -36,6 +47,38 @@ export default function AdminOrders() {
     }
   };
 
+  const handleCreatePosOrder = async (e) => {
+    e.preventDefault();
+    setPosSubmitting(true);
+    try {
+      const newOrder = await OrderService.create({
+        customerName: posCustomerName || 'Walk-In Counter Customer',
+        customerPhone: posCustomerPhone || '0300-0000000',
+        customerAddress: posOrderType === 'Delivery' ? 'Timergara City' : 'Timergara Counter Pickup',
+        orderType: posOrderType,
+        branch: 'Timergara Main Branch',
+        items: [{
+          name: posItemName,
+          price: Number(posPrice) || 500,
+          quantity: Number(posQuantity) || 1,
+          selectedOption: posOption
+        }],
+        totalAmount: (Number(posPrice) || 500) * (Number(posQuantity) || 1),
+        paymentMethod: 'Cash on Delivery',
+        status: 'Pending'
+      });
+      setIsPosOpen(false);
+      setPosCustomerName('');
+      setPosCustomerPhone('');
+      setSelectedReceipt(newOrder);
+      loadOrders();
+    } catch (err) {
+      alert('Failed to record counter order: ' + err.message);
+    } finally {
+      setPosSubmitting(false);
+    }
+  };
+
   const statuses = ['All', 'Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'];
 
   return (
@@ -51,8 +94,15 @@ export default function AdminOrders() {
             <h1 className="text-3xl font-bold font-serif gold-gradient-text mt-1">
               Receptionist & Counter Order Desk
             </h1>
-            <p className="text-xs text-gray-400">Manage live customer orders, update kitchen preparation stage, and print counter receipts</p>
+            <p className="text-xs text-gray-400">Manage live customer orders, record counter sales, and print invoices</p>
           </div>
+
+          <button
+            onClick={() => setIsPosOpen(true)}
+            className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 transition shadow-lg shadow-amber-500/20"
+          >
+            <FiPlus className="text-base" /> New Counter POS Order
+          </button>
         </div>
 
         {/* Filter Pills & Search */}
@@ -108,7 +158,14 @@ export default function AdminOrders() {
                 <tbody className="divide-y divide-amber-500/10 text-gray-300">
                   {orders.map((ord) => (
                     <tr key={ord._id} className="hover:bg-amber-500/5">
-                      <td className="py-4 px-3 font-mono font-bold text-amber-400">#{ord.orderId}</td>
+                      <td className="py-4 px-3 font-mono font-bold text-amber-400">
+                        #{ord.orderId}
+                        {ord.isCustomCake && (
+                          <span className="block text-[9px] font-sans font-black uppercase text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/40 mt-1">
+                            🎂 Custom Cake
+                          </span>
+                        )}
+                      </td>
                       <td className="py-4 px-3">
                         <div className="font-bold text-white">{ord.customerName}</div>
                         <div className="text-[11px] text-amber-300/80 font-mono">{ord.customerPhone}</div>
@@ -124,6 +181,17 @@ export default function AdminOrders() {
                               • <span className="font-semibold text-white">{it.name}</span> ({it.selectedOption}) x {it.quantity}
                             </div>
                           ))}
+
+                          {ord.isCustomCake && ord.customCakeDetails && (
+                            <div className="mt-2 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1 text-[11px]">
+                              <div className="text-amber-400 font-bold">🎂 Custom Cake Specs:</div>
+                              <div>🍰 <strong>Flavor:</strong> {ord.customCakeDetails.flavor}</div>
+                              <div>⚖️ <strong>Weight:</strong> {ord.customCakeDetails.weight}</div>
+                              <div>📐 <strong>Shape:</strong> {ord.customCakeDetails.shape}</div>
+                              <div>✍️ <strong>Text on Cake:</strong> "{ord.customCakeDetails.toppingMessage}"</div>
+                              {ord.notes && <div className="text-gray-400">📝 <strong>Note:</strong> {ord.notes}</div>}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="py-4 px-3 font-mono font-bold text-amber-400 text-sm">
@@ -188,6 +256,7 @@ export default function AdminOrders() {
                   <p>Customer: <strong>{selectedReceipt.customerName}</strong></p>
                   <p>Phone: {selectedReceipt.customerPhone}</p>
                   <p>Type: {selectedReceipt.orderType}</p>
+                  <p>Address: {selectedReceipt.customerAddress}</p>
                 </div>
 
                 <div className="border-t border-b border-dashed border-white/20 py-3 space-y-2">
@@ -198,6 +267,19 @@ export default function AdminOrders() {
                     </div>
                   ))}
                 </div>
+
+                {selectedReceipt.isCustomCake && selectedReceipt.customCakeDetails && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl space-y-1 font-sans">
+                    <div className="font-black text-amber-300 text-[11px] uppercase border-b border-amber-500/20 pb-1 mb-1">
+                      🎂 Pastry Chef Kitchen Specs
+                    </div>
+                    <div>🍰 <strong>Flavor:</strong> {selectedReceipt.customCakeDetails.flavor}</div>
+                    <div>⚖️ <strong>Weight:</strong> {selectedReceipt.customCakeDetails.weight}</div>
+                    <div>📐 <strong>Shape:</strong> {selectedReceipt.customCakeDetails.shape}</div>
+                    <div>✍️ <strong>Text on Cake:</strong> "{selectedReceipt.customCakeDetails.toppingMessage}"</div>
+                    {selectedReceipt.notes && <div className="text-amber-200">📝 <strong>Notes:</strong> {selectedReceipt.notes}</div>}
+                  </div>
+                )}
 
                 <div className="flex justify-between font-bold text-amber-400 text-sm pt-1">
                   <span>TOTAL PAYABLE</span>
@@ -220,6 +302,138 @@ export default function AdminOrders() {
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* Counter POS Order Modal */}
+        {isPosOpen && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#181820] border border-amber-500/30 rounded-3xl p-6 max-w-lg w-full space-y-6 text-white shadow-2xl">
+              <div className="flex justify-between items-center border-b border-amber-500/20 pb-4">
+                <div>
+                  <h3 className="text-xl font-bold font-serif gold-gradient-text flex items-center gap-2">
+                    <FiPlus className="text-amber-400" /> New Counter POS Order
+                  </h3>
+                  <p className="text-[11px] text-gray-400">Record a phone or walk-in customer order directly from the counter</p>
+                </div>
+                <button onClick={() => setIsPosOpen(false)} className="text-gray-400 hover:text-white">
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreatePosOrder} className="space-y-4 text-xs">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Customer Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Walk-In Customer"
+                      value={posCustomerName}
+                      onChange={(e) => setPosCustomerName(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Phone Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 0345-9000123"
+                      value={posCustomerPhone}
+                      onChange={(e) => setPosCustomerPhone(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Order Type</label>
+                    <select
+                      value={posOrderType}
+                      onChange={(e) => setPosOrderType(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400 font-bold"
+                    >
+                      <option value="Pickup">Counter Pickup</option>
+                      <option value="Delivery">Home Delivery</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Item Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Shahi Gulab Jamun"
+                      value={posItemName}
+                      onChange={(e) => setPosItemName(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Portion / Option</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1 Kg / Medium"
+                      value={posOption}
+                      onChange={(e) => setPosOption(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Unit Price (PKR)</label>
+                    <input
+                      type="number"
+                      placeholder="850"
+                      value={posPrice}
+                      onChange={(e) => setPosPrice(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400 font-mono font-bold"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-400 mb-1 font-bold">Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={posQuantity}
+                      onChange={(e) => setPosQuantity(e.target.value)}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400 font-bold"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl flex justify-between items-center text-sm font-bold text-amber-300">
+                  <span>TOTAL BILLABLE AMOUNT:</span>
+                  <span className="font-mono text-lg text-amber-400">
+                    Rs. {(Number(posPrice) || 0) * (Number(posQuantity) || 1)}
+                  </span>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsPosOpen(false)}
+                    className="flex-1 py-3 bg-[#121216] text-gray-400 font-bold rounded-xl hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={posSubmitting}
+                    className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
+                  >
+                    {posSubmitting ? 'Recording...' : 'Submit & Print Receipt'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

@@ -68,23 +68,36 @@ export default function Checkout() {
     setLoading(true);
 
     try {
+      const customCakeItem = cart.find(i => i.isCustomCake || i._id?.toString().startsWith('custom-cake'));
+      const isCustomCakeOrder = !!customCakeItem;
+
       const orderPayload = {
         customerName,
         customerPhone,
         customerAddress: orderType === 'Delivery' ? customerAddress : 'Pickup from Timergara Main Branch Counter',
         orderType,
         branch: 'Timergara Main Branch',
-        items: cart.map(i => ({
-          product: i._id,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          selectedOption: i.selectedOption,
-          imageUrl: i.imageUrl
-        })),
+        items: cart.map(i => {
+          const isCustom = i.isCustomCake || i._id?.toString().startsWith('custom-cake');
+          return {
+            product: isCustom ? null : i._id,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            selectedOption: i.selectedOption || (isCustom ? 'Custom Specs' : ''),
+            imageUrl: i.imageUrl || ''
+          };
+        }),
         totalAmount,
         paymentMethod,
-        notes,
+        notes: notes || (customCakeItem?.customCakeDetails?.specialInstructions ? `Cake Note: ${customCakeItem.customCakeDetails.specialInstructions}` : ''),
+        isCustomCake: isCustomCakeOrder,
+        customCakeDetails: customCakeItem ? (customCakeItem.customCakeDetails || {
+          flavor: customCakeItem.name,
+          weight: customCakeItem.selectedOption,
+          shape: 'Custom',
+          toppingMessage: customCakeItem.selectedOption
+        }) : null,
         userId: user._id
       };
 

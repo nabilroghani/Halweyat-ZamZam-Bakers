@@ -77,7 +77,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
         category,
         imageUrl,
         isFeatured: Boolean(isFeatured),
-        unit: unit || 'Kg',
+        unit: unit || 'Piece',
         weightOptions: weightOptions || [],
         tags: tags || []
       });
@@ -98,8 +98,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
       isAvailable: true,
       rating: 5.0,
       reviewsCount: 1,
-      unit: unit || 'Kg',
-      weightOptions: weightOptions || ['1 Kg'],
+      unit: unit || 'Piece',
+      weightOptions: weightOptions || [],
       tags: tags || ['New'],
       createdAt: new Date().toISOString()
     };
