@@ -1,86 +1,125 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaStar, FaWhatsapp } from 'react-icons/fa6';
+import React, { useState } from 'react';
+import { useCartStore } from '../store/useCartStore';
+import { FiShoppingBag, FiCheck, FiStar } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 
 export default function ProductCard({ product }) {
-  const whatsappMsg = encodeURIComponent(
-    `Hello Halwiyat Zamzam Bakers! I would like to order "${product.name}" (PKR ${product.price}/${product.unit}).`
-  );
-  const whatsappUrl = `https://wa.me/923275001166?text=${whatsappMsg}`;
+  const addToCart = useCartStore((state) => state.addToCart);
+  
+  const weightOpts = product.weightOptions && product.weightOptions.length > 0
+    ? product.weightOptions
+    : [product.unit || '1 Kg'];
+
+  const [selectedOption, setSelectedOption] = useState(weightOpts[0]);
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = () => {
+    addToCart(product, 1, selectedOption);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handleWhatsAppSingleItem = () => {
+    const text = `Hi Halwiyat Zamzam Bakers! I would like to order: *${product.name}* (${selectedOption}) - Rs. ${product.price}. Please confirm availability!`;
+    window.open(`https://wa.me/923459000123?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white rounded-2xl overflow-hidden border border-[#C9982F]/20 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col group"
-    >
-      {/* Product Image Container */}
-      <div className="relative h-56 overflow-hidden bg-cream-dark">
-        <img
-          src={product.imageUrl}
+    <div className="bg-[#181820] border border-amber-500/20 rounded-3xl overflow-hidden flex flex-col group hover:border-amber-500/40 transition-all duration-300 shadow-xl hover:-translate-y-1">
+      {/* Product Image */}
+      <div className="relative h-56 overflow-hidden">
+        <img 
+          src={product.imageUrl} 
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-
-        {/* Category Badge */}
-        <span className="absolute top-3 left-3 bg-[#3D2418]/80 backdrop-blur-md text-[#C9982F] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-[#C9982F]/30">
+        
+        {/* Category Pill */}
+        <span className="absolute top-3 left-3 bg-[#121216]/80 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] uppercase font-bold px-3 py-1 rounded-full">
           {product.category}
         </span>
 
-        {/* Featured Tag */}
-        {product.featured && (
-          <span className="absolute top-3 right-3 bg-[#7B1E3A] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest shadow">
-            ★ Chef Special
-          </span>
+        {/* Availability Badge */}
+        {!product.isAvailable && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+            <span className="bg-red-600 text-white font-extrabold text-xs uppercase px-4 py-1.5 rounded-full shadow-lg">
+              Out of Stock
+            </span>
+          </div>
         )}
       </div>
 
-      {/* Content */}
+      {/* Product Body */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="font-heading font-bold text-lg text-[#3D2418] group-hover:text-[#7B1E3A] transition-colors line-clamp-1">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="font-serif font-bold text-lg text-white group-hover:text-amber-400 transition-colors">
               {product.name}
             </h3>
-            {/* Rating */}
-            <div className="flex items-center gap-1 text-xs bg-[#FFF8F0] px-2 py-0.5 rounded-full border border-[#C9982F]/30 shrink-0">
-              <FaStar className="text-[#C9982F]" />
-              <span className="font-bold text-[#3D2418]">{product.rating}</span>
+            <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
+              <FiStar className="fill-amber-400" />
+              <span>{product.rating || 4.9}</span>
             </div>
           </div>
-          <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+          
+          <p className="text-xs text-gray-400 leading-relaxed font-sans line-clamp-2">
             {product.description}
           </p>
         </div>
 
-        {/* Price & Action */}
-        <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+        {/* Weight Option Selector */}
+        {weightOpts.length > 1 && (
           <div>
-            <span className="text-xs text-stone-400 block font-medium">Price</span>
-            <div className="flex items-baseline gap-1">
-              <span className="font-heading font-bold text-xl text-[#7B1E3A]">
-                Rs. {product.price.toLocaleString()}
-              </span>
-              <span className="text-[11px] text-stone-500 font-sans">/{product.unit}</span>
+            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Select Weight / Portion</label>
+            <select
+              value={selectedOption}
+              onChange={(e) => setSelectedOption(e.target.value)}
+              className="w-full px-2.5 py-1.5 bg-[#121216] border border-amber-500/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-400"
+            >
+              {weightOpts.map((opt, idx) => (
+                <option key={idx} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Price & Action Buttons */}
+        <div className="pt-3 border-t border-amber-500/10 space-y-3">
+          <div className="flex justify-between items-baseline">
+            <div>
+              <span className="text-lg font-bold font-mono text-amber-400">Rs. {product.price}</span>
+              {product.originalPrice > product.price && (
+                <span className="text-xs text-gray-500 line-through ml-2">Rs. {product.originalPrice}</span>
+              )}
             </div>
+            <span className="text-[10px] text-gray-500">per {product.unit || 'Kg'}</span>
           </div>
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1eb957] text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition-all duration-300 hover:scale-105 active:scale-95"
-            title="Order directly on WhatsApp"
-          >
-            <FaWhatsapp className="text-base" />
-            <span>Order</span>
-          </a>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.isAvailable}
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                added 
+                  ? 'bg-emerald-500 text-slate-950' 
+                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 disabled:opacity-40'
+              }`}
+            >
+              {added ? <FiCheck /> : <FiShoppingBag />}
+              {added ? 'Added!' : 'Add to Cart'}
+            </button>
+
+            <button
+              onClick={handleWhatsAppSingleItem}
+              className="py-2 px-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1"
+              title="Instant WhatsApp Order"
+            >
+              <FaWhatsapp className="text-sm" /> Order
+            </button>
+          </div>
         </div>
+
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -1,30 +1,41 @@
 import express from 'express';
 import Contact from '../models/Contact.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// POST /api/contact
+// @desc    Submit customer inquiry message
+// @route   POST /api/contact
 router.post('/', async (req, res) => {
   try {
-    const { name, phone, message } = req.body;
-
+    const { name, email, phone, subject, message } = req.body;
     if (!name || !phone || !message) {
-      return res.status(400).json({ message: 'Name, phone, and message are required fields.' });
+      return res.status(400).json({ message: 'Name, phone and message are required' });
     }
 
-    try {
-      const contact = new Contact({ name, phone, message });
-      await contact.save();
-    } catch (dbErr) {
-      console.warn('Contact saved in memory fallback (DB offline):', { name, phone, message });
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Thank you! Your message has been sent to Halwiyat Zamzam Bakers.'
+    const contact = new Contact({
+      name,
+      email: email || 'not-provided@customer.com',
+      phone,
+      subject: subject || 'General Inquiry',
+      message
     });
+
+    const savedContact = await contact.save();
+    res.status(201).json({ message: 'Message sent successfully!', contact: savedContact });
   } catch (error) {
-    res.status(500).json({ message: 'Server error processing contact form', error: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Get all inquiries (Admin / Receptionist)
+// @route   GET /api/contact
+router.get('/', protect, async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    res.json(contacts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

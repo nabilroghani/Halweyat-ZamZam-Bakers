@@ -1,211 +1,231 @@
 export const sampleProducts = [
-  // Cakes
-  {
-    name: "Royal Black Forest Cake",
-    description: "Rich dark chocolate sponge layers filled with sweet whipped cream and juicy maraschino cherries.",
-    price: 1800,
-    category: "Cakes",
-    imageUrl: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-    rating: 4.9,
-    unit: "pound"
-  },
-  {
-    name: "Velvet Crimson Supreme",
-    description: "Moist red velvet cake layered with signature smooth cream cheese frosting and fine crumbs.",
-    price: 2100,
-    category: "Cakes",
-    imageUrl: "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-    rating: 4.8,
-    unit: "pound"
-  },
-  {
-    name: "Belgian Chocolate Truffle",
-    description: "Decadent melted Belgian chocolate ganache coating soft fudge cake layers.",
-    price: 2400,
-    category: "Cakes",
-    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-    rating: 5.0,
-    unit: "pound"
-  },
-  {
-    name: "Classic Vanilla Bean Sponge",
-    description: "Light and airy Madagascar vanilla sponge topped with fresh vanilla bean frosting.",
-    price: 1500,
-    category: "Cakes",
-    imageUrl: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.7,
-    unit: "pound"
-  },
-
   // Sweets
   {
     name: "Special Shahi Gulab Jamun",
     description: "Traditional milk-solid dumplings fried golden and soaked in cardamom-infused saffron syrup.",
     price: 950,
+    originalPrice: 1100,
     category: "Sweets",
     imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    isFeatured: true,
+    isAvailable: true,
     rating: 4.9,
-    unit: "kg"
+    reviewsCount: 142,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg", "2 Kg", "5 Kg"],
+    tags: ["Desi Ghee", "Best Seller", "Timergara Special"],
+    prepTime: "Ready to Serve"
   },
   {
     name: "Zafrani Rasmalai",
     description: "Soft cottage cheese patties immersed in chilled, pistachio & saffron flavored condensed milk.",
     price: 1200,
+    originalPrice: 1400,
     category: "Sweets",
     imageUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    isFeatured: true,
+    isAvailable: true,
     rating: 5.0,
-    unit: "kg"
+    reviewsCount: 98,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg", "2 Kg"],
+    tags: ["Chilled", "Royal Recipe"],
+    prepTime: "Ready to Serve"
   },
   {
     name: "Pistachio Mawa Barfi",
     description: "Rich khoya sweet garnished generously with crushed green pistachios and edible silver leaf.",
     price: 1100,
+    originalPrice: 1250,
     category: "Sweets",
     imageUrl: "https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80",
-    featured: false,
+    isFeatured: false,
+    isAvailable: true,
     rating: 4.8,
-    unit: "kg"
+    reviewsCount: 76,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg", "2 Kg"],
+    tags: ["Pure Khoya", "Fresh Daily"],
+    prepTime: "Ready to Serve"
   },
   {
-    name: "Crispy Saffron Jalebi",
-    description: "Hot, spiral-shaped crispy funnel sweets drenched in fragrant rose-saffron syrup.",
-    price: 750,
+    name: "Turkish Baklava Assortment",
+    description: "Flaky phyllo pastry layers filled with chopped nuts and sweetened with honey syrup.",
+    price: 1600,
+    originalPrice: 1800,
     category: "Sweets",
-    imageUrl: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.6,
-    unit: "kg"
+    imageUrl: "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
+    rating: 4.9,
+    reviewsCount: 64,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg"],
+    tags: ["Turkish Special", "Premium Gift Box"],
+    prepTime: "Ready to Serve"
   },
 
-  // Fast Food
+  // Cakes & Custom Cakes
+  {
+    name: "Belgian Chocolate Truffle Cake",
+    description: "Decadent melted Belgian chocolate ganache coating soft fudge cake layers.",
+    price: 2400,
+    originalPrice: 2700,
+    category: "Cakes",
+    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
+    rating: 5.0,
+    reviewsCount: 215,
+    unit: "Lb",
+    weightOptions: ["2 Lbs", "3 Lbs", "5 Lbs"],
+    tags: ["Best Seller", "Chocolate Lover"],
+    prepTime: "Freshly Baked"
+  },
+  {
+    name: "Royal Black Forest Cake",
+    description: "Rich dark chocolate sponge layers filled with sweet whipped cream and juicy cherries.",
+    price: 1800,
+    originalPrice: 2000,
+    category: "Cakes",
+    imageUrl: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
+    rating: 4.9,
+    reviewsCount: 180,
+    unit: "Lb",
+    weightOptions: ["2 Lbs", "3 Lbs", "5 Lbs"],
+    tags: ["Classic Favorite"],
+    prepTime: "Freshly Baked"
+  },
+  {
+    name: "Custom Birthday & Wedding Cake Studio",
+    description: "Order personalized multi-tier cakes with custom toppings, photo print, and custom flavor choices.",
+    price: 3500,
+    originalPrice: 4000,
+    category: "Custom Cakes",
+    imageUrl: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
+    rating: 5.0,
+    reviewsCount: 310,
+    unit: "Lb",
+    weightOptions: ["3 Lbs", "5 Lbs", "8 Lbs", "10 Lbs"],
+    tags: ["Customized", "Event Special"],
+    prepTime: "2-4 Hours Advance Order"
+  },
+
+  // Fast Food & Snacks
   {
     name: "Special Chicken Patties",
     description: "Multi-layered flaky puff pastry filled with spiced shredded chicken breast and herbs.",
-    price: 120,
+    price: 130,
+    originalPrice: 150,
     category: "Fast Food",
     imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    isFeatured: true,
+    isAvailable: true,
     rating: 4.9,
-    unit: "piece"
-  },
-  {
-    name: "Crispy Potato Samosa",
-    description: "Golden triangular pastry stuffed with seasoned crushed potatoes, green peas, and spices.",
-    price: 60,
-    category: "Fast Food",
-    imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.7,
-    unit: "piece"
+    reviewsCount: 190,
+    unit: "Piece",
+    weightOptions: ["1 Piece", "Box of 6", "Box of 12"],
+    tags: ["Hot & Fresh", "Snack"],
+    prepTime: "10-15 mins"
   },
   {
     name: "Grilled Chicken Paratha Roll",
     description: "Tandoori chicken boti wrapped in crisp paratha with mint chutney and fresh onion rings.",
     price: 280,
+    originalPrice: 320,
     category: "Fast Food",
     imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    isFeatured: true,
+    isAvailable: true,
     rating: 4.8,
-    unit: "piece"
-  },
-  {
-    name: "Zamzam Club Sandwich",
-    description: "Triple-decker toasted bread filled with chicken salad, fried egg, cheese slice, and fresh veggies.",
-    price: 350,
-    category: "Fast Food",
-    imageUrl: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.6,
-    unit: "piece"
+    reviewsCount: 110,
+    unit: "Piece",
+    weightOptions: ["Single Roll", "Double Cheese Roll"],
+    tags: ["Spicy", "Chef Special"],
+    prepTime: "15 mins"
   },
 
   // Bakery Items
   {
-    name: "Glazed Glazed Chocolate Donut",
-    description: "Soft yeast-raised donut topped with rich cocoa glaze and rainbow sprinkles.",
-    price: 150,
-    category: "Bakery Items",
-    imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-    rating: 4.8,
-    unit: "piece"
-  },
-  {
-    name: "Butter Cream Roll",
-    description: "Crispy spiral puff tube filled generously with sweet vanilla buttercream.",
-    price: 90,
-    category: "Bakery Items",
-    imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.6,
-    unit: "piece"
-  },
-  {
-    name: "Traditional Nan Khatai",
+    name: "Traditional Nan Khatai Biscuits",
     description: "Melt-in-your-mouth shortbread biscuits crafted with pure desi ghee and cardamom.",
-    price: 800,
+    price: 850,
+    originalPrice: 950,
     category: "Bakery Items",
     imageUrl: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80",
-    featured: false,
+    isFeatured: true,
+    isAvailable: true,
     rating: 4.9,
-    unit: "kg"
+    reviewsCount: 145,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg", "2 Kg"],
+    tags: ["Desi Ghee", "Tea Time Favorite"],
+    prepTime: "Ready to Pack"
   },
   {
-    name: "Fresh Butter Croissant",
-    description: "Flaky, buttery French-style croissant baked fresh every morning.",
-    price: 180,
+    name: "Glazed Chocolate Donut",
+    description: "Soft yeast-raised donut topped with rich cocoa glaze and rainbow sprinkles.",
+    price: 160,
+    originalPrice: 180,
     category: "Bakery Items",
-    imageUrl: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-    rating: 4.7,
-    unit: "piece"
+    imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80",
+    isFeatured: false,
+    isAvailable: true,
+    rating: 4.8,
+    reviewsCount: 88,
+    unit: "Piece",
+    weightOptions: ["1 Piece", "Box of 4"],
+    tags: ["Sweet Snack"],
+    prepTime: "Ready to Serve"
   },
 
-  // Drinks
+  // Nimko & Snacks
   {
-    name: "Fresh Squeezed Orange Juice",
-    description: "100% natural, freshly pressed seasonal citrus oranges rich in Vitamin C.",
-    price: 250,
-    category: "Drinks",
-    imageUrl: "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    name: "Zamzam Special Mix Nimko",
+    description: "Crispy savory mix of chickpea flour noodles, roasted peanuts, lentils, and secret spices.",
+    price: 600,
+    originalPrice: 700,
+    category: "Nimko & Snacks",
+    imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
     rating: 4.9,
-    unit: "glass"
+    reviewsCount: 120,
+    unit: "Kg",
+    weightOptions: ["0.5 Kg", "1 Kg", "2 Kg"],
+    tags: ["Crispy", "Timergara Favorite"],
+    prepTime: "Ready to Pack"
   },
+
+  // Deals
   {
-    name: "Creamy Mango Shake",
-    description: "Thick smoothie blend of ripe Chaunsa mangoes, cold milk, and vanilla ice cream.",
-    price: 300,
-    category: "Drinks",
-    imageUrl: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=800&q=80",
-    featured: true,
+    name: "Zamzam Family Celebration Combo",
+    description: "1 Kg Shahi Sweets Mix + 2 Lbs Chocolate Cake + 1 Kg Special Mix Nimko + 6 Chicken Patties.",
+    price: 4999,
+    originalPrice: 5800,
+    category: "Deals",
+    imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    isFeatured: true,
+    isAvailable: true,
     rating: 5.0,
-    unit: "glass"
-  },
-  {
-    name: "Special Kashmiri Pink Chai",
-    description: "Traditional brew infused with green tea leaves, crushed pistachios, almonds, and milk.",
-    price: 120,
-    category: "Drinks",
-    imageUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.8,
-    unit: "cup"
-  },
-  {
-    name: "Iced Caramel Cold Coffee",
-    description: "Chilled espresso blended with creamy milk and rich salted caramel syrup.",
-    price: 320,
-    category: "Drinks",
-    imageUrl: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80",
-    featured: false,
-    rating: 4.7,
-    unit: "glass"
+    reviewsCount: 85,
+    unit: "Combo Pack",
+    weightOptions: ["Standard Combo"],
+    tags: ["Mega Savings", "Family Deal"],
+    prepTime: "Ready in 20 mins"
   }
+];
+
+export const sampleCategories = [
+  { name: "Sweets", slug: "sweets", description: "Authentic Pakistani & Turkish sweets made with pure Desi Ghee", displayOrder: 1 },
+  { name: "Cakes", slug: "cakes", description: "Freshly baked artisan cakes for birthdays and anniversaries", displayOrder: 2 },
+  { name: "Custom Cakes", slug: "custom-cakes", description: "Personalized multi-tier party & event cakes", displayOrder: 3 },
+  { name: "Bakery Items", slug: "bakery-items", description: "Fresh biscuits, croissants, nan khatai, and rolls", displayOrder: 4 },
+  { name: "Fast Food", slug: "fast-food", description: "Hot chicken patties, paratha rolls, and samosas", displayOrder: 5 },
+  { name: "Nimko & Snacks", slug: "nimko-snacks", description: "Crispy savory nimko and roasted dry fruit snacks", displayOrder: 6 },
+  { name: "Deals", slug: "deals", description: "Special family celebration discount bundles", displayOrder: 7 }
 ];

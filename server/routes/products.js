@@ -1,75 +1,177 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
-import { sampleProducts } from '../data/seedData.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { inMemoryDB } from '../server.js';
 
 const router = express.Router();
 
-// GET /api/products (with optional ?category= and ?featured= and ?search=)
+// @desc    Fetch all products with optional filters
+// @route   GET /api/products
 router.get('/', async (req, res) => {
   try {
-    const { category, featured, search } = req.query;
-    let query = {};
+    const { category, search, featured, availableOnly } = req.query;
 
-    if (category && category !== 'All') {
-      query.category = category;
-    }
+    if (mongoose.connection.readyState === 1) {
+      let query = {};
+      if (category && category !== 'All') query.category = category;
+      if (search) query.name = { $regex: search, $options: 'i' };
+      if (featured === 'true') query.isFeatured = true;
+      if (availableOnly === 'true') query.isAvailable = true;
 
-    if (featured === 'true') {
-      query.featured = true;
-    }
-
-    if (search) {
-      query.name = { $regex: search, $options: 'i' };
-    }
-
-    // Try DB first, fallback to in-memory seed data if DB is disconnected
-    try {
       const products = await Product.find(query).sort({ createdAt: -1 });
-      if (products && products.length > 0) {
-        return res.json(products);
-      }
-    } catch (dbErr) {
-      console.warn('MongoDB query failed, using in-memory fallback:', dbErr.message);
+      return res.json(products);
     }
 
-    // In-memory filtering fallback for smooth preview without local DB setup required
-    let filtered = [...sampleProducts];
+    // Fallback mode filtering
+    let filtered = [...inMemoryDB.products];
     if (category && category !== 'All') {
       filtered = filtered.filter(p => p.category.toLowerCase() === category.toLowerCase());
-    }
-    if (featured === 'true') {
-      filtered = filtered.filter(p => p.featured);
     }
     if (search) {
       filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
     }
+    if (featured === 'true') {
+      filtered = filtered.filter(p => p.isFeatured);
+    }
+    if (availableOnly === 'true') {
+      filtered = filtered.filter(p => p.isAvailable);
+    }
+
     res.json(filtered);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching products', error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
-// GET /api/products/:id
+// @desc    Fetch single product by ID
+// @route   GET /api/products/:id
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    if (mongoose.connection.readyState === 1) {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+      return res.json(product);
     }
+
+    const product = inMemoryDB.products.find(p => p._id === req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching product', error: error.message });
+    res.status(500).json({ message: 'Product error' });
   }
 });
 
-// POST /api/products (for admin or adding products)
-router.post('/', async (req, res) => {
+// @desc    Create a product (Admin only)
+// @route   POST /api/products
+router.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const newProduct = new Product(req.body);
-    const saved = await newProduct.save();
-    res.status(201).json(saved);
+    const { name, description, price, originalPrice, category, imageUrl, isFeatured, unit, weightOptions, tags } = req.body;
+    
+    if (mongoose.connection.readyState === 1) {
+      const product = new Product({
+        name,
+        description,
+        price: Number(price),
+        originalPrice: Number(originalPrice || 0),
+        category,
+        imageUrl,
+        isFeatured: Boolean(isFeatured),
+        unit: unit || 'Kg',
+        weightOptions: weightOptions || [],
+        tags: tags || []
+      });
+      const createdProduct = await product.save();
+      return res.status(201).json(createdProduct);
+    }
+
+    // Fallback mode creation
+    const newProduct = {
+      _id: `p-${Date.now()}`,
+      name,
+      description,
+      price: Number(price),
+      originalPrice: Number(originalPrice || 0),
+      category,
+      imageUrl,
+      isFeatured: Boolean(isFeatured),
+      isAvailable: true,
+      rating: 5.0,
+      reviewsCount: 1,
+      unit: unit || 'Kg',
+      weightOptions: weightOptions || ['1 Kg'],
+      tags: tags || ['New'],
+      createdAt: new Date().toISOString()
+    };
+    inMemoryDB.products.unshift(newProduct);
+    res.status(201).json(newProduct);
   } catch (error) {
-    res.status(400).json({ message: 'Error creating product', error: error.message });
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @desc    Update a product (Admin only)
+// @route   PUT /api/products/:id
+router.put('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+
+      Object.assign(product, req.body);
+      const updatedProduct = await product.save();
+      return res.json(updatedProduct);
+    }
+
+    const idx = inMemoryDB.products.findIndex(p => p._id === req.params.id);
+    if (idx === -1) return res.status(404).json({ message: 'Product not found' });
+
+    inMemoryDB.products[idx] = { ...inMemoryDB.products[idx], ...req.body };
+    res.json(inMemoryDB.products[idx]);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @desc    Toggle product availability (Stock status)
+// @route   PATCH /api/products/:id/toggle-stock
+router.patch('/:id/toggle-stock', protect, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+
+      product.isAvailable = !product.isAvailable;
+      await product.save();
+      return res.json({ message: 'Stock status updated', isAvailable: product.isAvailable });
+    }
+
+    const product = inMemoryDB.products.find(p => p._id === req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    product.isAvailable = !product.isAvailable;
+    res.json({ message: 'Stock status updated', isAvailable: product.isAvailable });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @desc    Delete a product (Admin only)
+// @route   DELETE /api/products/:id
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ message: 'Product not found' });
+
+      await Product.deleteOne({ _id: req.params.id });
+      return res.json({ message: 'Product removed successfully' });
+    }
+
+    inMemoryDB.products = inMemoryDB.products.filter(p => p._id !== req.params.id);
+    res.json({ message: 'Product removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

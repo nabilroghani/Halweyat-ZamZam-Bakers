@@ -2,8 +2,8 @@ import React from 'react';
 import { FaWhatsapp } from 'react-icons/fa6';
 
 export default function WhatsAppButton() {
-  const phoneNumber = '923275001166';
-  const defaultMessage = encodeURIComponent('Hello Halwiyat Zamzam Bakers! I would like to place an order.');
+  const phoneNumber = '923459000123';
+  const defaultMessage = encodeURIComponent('Hello Halwiyat Zamzam Bakers! I would like to place an order from Timergara.');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${defaultMessage}`;
 
   return (
@@ -11,15 +11,16 @@ export default function WhatsAppButton() {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Order via WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 bg-[#25D366] text-white px-3.5 py-3 rounded-full shadow-2xl hover:bg-[#20bd5a] transition-all duration-300 transform hover:scale-105 active:scale-95 group border border-white/20"
+      aria-label="Order on WhatsApp"
+      className="fixed bottom-6 right-6 z-50 flex items-center bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold p-3.5 rounded-full shadow-2xl transition-all duration-300 group border border-emerald-400/40 shadow-emerald-900/40 overflow-hidden max-w-[54px] hover:max-w-[320px] hover:px-5"
     >
-      <div className="relative flex items-center justify-center">
-        <FaWhatsapp className="text-2xl" />
-        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+      <div className="relative flex items-center justify-center shrink-0">
+        <FaWhatsapp className="text-2xl text-slate-950" />
+        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full animate-ping" />
       </div>
-      <span className="font-semibold text-xs sm:text-sm tracking-wide">
-        Order on WhatsApp
+
+      <span className="text-xs font-extrabold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-3">
+        Order on WhatsApp (+92 345 9000123)
       </span>
     </a>
   );
