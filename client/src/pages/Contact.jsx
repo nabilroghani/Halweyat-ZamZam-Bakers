@@ -104,7 +104,7 @@ export default function Contact() {
                 <p className="text-xs text-emerald-100">Chat directly with our Timergara counter team.</p>
               </div>
               <a
-                href="https://wa.me/923459000123"
+                href="https://wa.me/923275001166"
                 target="_blank"
                 rel="noreferrer"
                 className="px-5 py-2.5 bg-white text-emerald-800 rounded-xl text-xs font-bold uppercase tracking-wider shadow hover:bg-emerald-50 transition shrink-0"

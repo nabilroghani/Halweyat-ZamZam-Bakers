@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { OrderService } from '../services/api';
 import { FiCreditCard, FiTruck, FiCheckCircle, FiShield, FiLock, FiPhone, FiMapPin, FiUser, FiShoppingBag, FiLogIn, FiUserPlus } from 'react-icons/fi';
 import { FaWhatsapp, FaUniversity } from 'react-icons/fa';
+import { isValidPakistaniPhone } from '../utils/validation';
 
 export default function Checkout() {
   const { cart, getSubtotal, clearCart } = useCartStore();
@@ -60,6 +61,11 @@ export default function Checkout() {
       return;
     }
 
+    if (!isValidPakistaniPhone(customerPhone)) {
+      alert('Please enter a valid Pakistani mobile number (e.g. 03275001166 or 03001234567)');
+      return;
+    }
+
     if (orderType === 'Delivery' && !customerAddress) {
       alert('Please enter your Delivery Address in Timergara');
       return;
@@ -74,6 +80,7 @@ export default function Checkout() {
       const orderPayload = {
         customerName,
         customerPhone,
+        customerEmail: user?.email || '',
         customerAddress: orderType === 'Delivery' ? customerAddress : 'Pickup from Timergara Main Branch Counter',
         orderType,
         branch: 'Timergara Main Branch',
@@ -98,7 +105,7 @@ export default function Checkout() {
           shape: 'Custom',
           toppingMessage: customCakeItem.selectedOption
         }) : null,
-        userId: user._id
+        userId: user._id || user.id
       };
 
       const result = await OrderService.create(orderPayload);
@@ -134,7 +141,7 @@ export default function Checkout() {
     msg += `\n💳 *TOTAL*: *Rs. ${totalAmount}*\n`;
     if (notes) msg += `\n📝 *Notes*: ${notes}\n`;
 
-    window.open(`https://wa.me/923459000123?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/923275001166?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   if (orderConfirmed) {
@@ -171,16 +178,24 @@ export default function Checkout() {
             </div>
           </div>
 
+          <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl text-xs text-amber-300 flex items-center gap-2">
+            <span>⏱️</span>
+            <span>
+              <strong>Estimated {orderConfirmed.orderType === 'Delivery' ? 'Delivery' : 'Pickup'} Time:</strong>
+              {' '}{orderConfirmed.orderType === 'Delivery' ? '30-45 minutes' : '15-20 minutes'} from Timergara Main Branch counter.
+            </span>
+          </div>
+
           <p className="text-xs text-gray-400">
             Receptionist counter desk at Timergara Main Branch has received your order. Kitchen team is preparing your fresh items!
           </p>
 
           <div className="flex gap-3 pt-2">
             <Link
-              to="/my-orders"
+              to="/track-order"
               className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg"
             >
-              Track Order Status
+              Track My Order Live
             </Link>
             <Link
               to="/menu"

@@ -8,6 +8,7 @@ import productRoutes from './routes/products.js';
 import categoryRoutes from './routes/categories.js';
 import orderRoutes from './routes/orders.js';
 import contactRoutes from './routes/contact.js';
+import uploadRoutes from './routes/upload.js';
 import { sampleProducts, sampleCategories } from './data/seedData.js';
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

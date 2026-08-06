@@ -359,38 +359,97 @@ export default function AdminProducts() {
                 {/* Weight / Portion / Size Options */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="block font-bold text-gray-300">Portion / Size Options (Comma Separated)</label>
+                    <label className="block font-bold text-gray-300">Portion / Size & Custom Price Options</label>
+                    <span className="text-[10px] text-amber-400 font-bold">💡 Format: Size - Rs. Price</span>
                   </div>
                   <input 
                     type="text"
-                    placeholder="e.g. Small, Medium, Large OR 1.5 Lb, 2 Lb OR 500g, 1 Kg"
+                    placeholder="e.g. Small - Rs. 650, Medium - Rs. 1100, Large - Rs. 1650, Family - Rs. 2400"
                     value={weightOptionsInput} onChange={(e) => setWeightOptionsInput(e.target.value)}
                     className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-[11px]"
                   />
-                  <p className="text-[10px] text-gray-400 mt-1">Quick Presets (Click to autofill):</p>
+                  <div className="mt-1.5 p-2 bg-[#121216] border border-amber-500/10 rounded-xl text-[10px] text-gray-400 space-y-1">
+                    <p className="text-amber-400 font-bold">✨ How Custom Pricing Works:</p>
+                    <p>• Write custom price for each size: <code className="text-amber-300 bg-black/40 px-1 rounded">Small - Rs. 650, Medium - Rs. 1100, Large - Rs. 1650</code></p>
+                    <p>• Or write sizes without prices (e.g. <code className="text-gray-300">Small, Medium, Large</code>) for automatic percentage calculation.</p>
+                  </div>
+                  
+                  <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-wider">Quick Presets (Click to Auto-fill Custom Prices):</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
-                    <button type="button" onClick={() => applyPreset('Piece', 'Small, Medium, Large, Family')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
-                      🍕 Pizza Sizes
+                    <button type="button" onClick={() => applyPreset('Piece', 'Small - Rs. 650, Medium - Rs. 1100, Large - Rs. 1650, Family - Rs. 2400')} className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-medium transition">
+                      🍕 Pizza Sizes & Prices
                     </button>
-                    <button type="button" onClick={() => applyPreset('Pound', '1.5 Lb, 2 Lb, 3 Lb, 5 Lb')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
-                      🎂 Cake Pounds
+                    <button type="button" onClick={() => applyPreset('Pound', '1 Lb - Rs. 600, 2 Lbs - Rs. 1200, 3 Lbs - Rs. 1800, 5 Lbs - Rs. 3000')} className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-medium transition">
+                      🎂 Cake Pounds & Prices
                     </button>
-                    <button type="button" onClick={() => applyPreset('Kg', '250g, 500g, 1 Kg, 2 Kg')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
-                      🍬 Sweets Weight
+                    <button type="button" onClick={() => applyPreset('Kg', '250g - Rs. 200, 500g - Rs. 400, 1 Kg - Rs. 800, 2 Kg - Rs. 1600')} className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-medium transition">
+                      🍬 Sweets Weight & Prices
                     </button>
-                    <button type="button" onClick={() => applyPreset('Piece', '1 Piece, Box of 6, Box of 12')} className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded text-[10px]">
-                      🥐 Bakery/Patties
+                    <button type="button" onClick={() => applyPreset('Piece', '1 Piece - Rs. 80, Box of 6 - Rs. 450, Box of 12 - Rs. 850')} className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-medium transition">
+                      🥐 Bakery Items & Prices
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-300 mb-1">Image URL / Unsplash Link *</label>
-                  <input 
-                    type="url" required
-                    value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-[11px]"
-                  />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block font-bold text-gray-300">Product Image (File Upload or URL) *</label>
+                    <span className="text-[10px] text-amber-400 font-bold">☁️ Cloudinary Upload Ready</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {/* Direct File Picker for Cloudinary */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onloadend = async () => {
+                            try {
+                              const token = localStorage.getItem('zamzam_auth_token');
+                              const res = await fetch('/api/upload', {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ image: reader.result })
+                              });
+                              const data = await res.json();
+                              if (data.url) {
+                                setImageUrl(data.url);
+                                alert('✅ Image uploaded successfully to Cloudinary!');
+                              } else {
+                                alert('Upload fallback: Using local image preview');
+                                setImageUrl(reader.result);
+                              }
+                            } catch (err) {
+                              setImageUrl(reader.result);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                        className="text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500/20 file:text-amber-400 hover:file:bg-amber-500/30 cursor-pointer"
+                      />
+                    </div>
+
+                    <input 
+                      type="text" required
+                      placeholder="https://..."
+                      value={imageUrl} onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-[11px]"
+                    />
+                  </div>
+
+                  {imageUrl && (
+                    <div className="mt-2 flex items-center gap-3 bg-[#121216] p-2 rounded-xl border border-amber-500/10">
+                      <img src={imageUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-amber-500/30 shrink-0" />
+                      <span className="text-[10px] text-emerald-400 font-mono line-clamp-1">Preview Loaded: {imageUrl}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div>

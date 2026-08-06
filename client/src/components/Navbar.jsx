@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { FiShoppingBag, FiMenu, FiX, FiUser, FiPhoneCall, FiPieChart, FiLogOut, FiBox, FiUsers, FiGlobe } from 'react-icons/fi';
+import { FiShoppingBag, FiMenu, FiX, FiUser, FiPieChart, FiLogOut, FiBox, FiUsers, FiGlobe, FiPackage } from 'react-icons/fi';
 
 export default function Navbar() {
   const { toggleCart, getTotalItemsCount } = useCartStore();
@@ -18,6 +18,7 @@ export default function Navbar() {
     { name: 'Home', path: '/' },
     { name: 'Menu & Sweets', path: '/menu' },
     { name: 'Custom Cake Studio', path: '/custom-cake' },
+    { name: 'Gallery', path: '/gallery' },
     { name: 'About Us', path: '/about' },
     { name: 'Contact', path: '/contact' }
   ];
@@ -150,14 +151,6 @@ export default function Navbar() {
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-4">
-            
-            <a 
-              href="tel:+923459000123" 
-              className="hidden lg:flex items-center gap-2 text-xs text-amber-300/80 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20 hover:border-amber-500/40 transition"
-            >
-              <FiPhoneCall className="text-amber-400" />
-              <span>0345 9000123</span>
-            </a>
 
             {user ? (
               <div className="flex items-center gap-2">
@@ -169,12 +162,28 @@ export default function Navbar() {
                     <FiPieChart /> {user.role.toUpperCase()} Portal
                   </Link>
                 ) : (
-                  <Link 
-                    to="/my-orders"
-                    className="flex items-center gap-2 text-xs font-bold bg-[#181820] text-amber-400 border border-amber-500/30 px-3 py-2 rounded-lg hover:bg-amber-500/10 transition"
-                  >
-                    <FiUser /> {user.name.split(' ')[0]} (My Orders)
-                  </Link>
+                  <div className="flex items-center gap-1">
+                    <Link 
+                      to="/my-orders"
+                      className="flex items-center gap-1.5 text-xs font-bold bg-[#181820] text-amber-400 border border-amber-500/30 px-3 py-2 rounded-lg hover:bg-amber-500/10 transition"
+                    >
+                      <FiUser /> {user.name.split(' ')[0]}
+                    </Link>
+                    <Link 
+                      to="/profile"
+                      className="flex items-center gap-1.5 text-xs font-bold bg-[#181820] text-gray-400 border border-gray-700/50 px-2 py-2 rounded-lg hover:text-amber-400 hover:border-amber-500/30 transition"
+                      title="Edit Profile"
+                    >
+                      <FiUser className="text-[13px]" />
+                    </Link>
+                    <Link 
+                      to="/track-order"
+                      className="flex items-center gap-1.5 text-xs font-bold bg-[#181820] text-gray-400 border border-gray-700/50 px-2 py-2 rounded-lg hover:text-amber-400 hover:border-amber-500/30 transition"
+                      title="Track My Order"
+                    >
+                      <FiPackage className="text-[13px]" />
+                    </Link>
+                  </div>
                 )}
                 <button 
                   onClick={logout}
@@ -245,9 +254,16 @@ export default function Navbar() {
           
           <div className="pt-3 space-y-2 border-t border-amber-500/10">
             {user ? (
-              <div className="flex justify-between items-center text-xs text-amber-300">
-                <span>Signed in as: <strong>{user.name}</strong> ({user.role})</span>
-                <button onClick={logout} className="text-red-400 font-bold underline">Logout</button>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center text-amber-300">
+                  <span>Signed in: <strong>{user.name}</strong> ({user.role})</span>
+                  <button onClick={logout} className="text-red-400 font-bold underline">Logout</button>
+                </div>
+                <div className="flex gap-2">
+                  <Link to="/my-orders" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg font-bold">My Orders</Link>
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 bg-[#181820] text-gray-300 border border-gray-700/50 rounded-lg font-bold">Profile</Link>
+                  <Link to="/track-order" onClick={() => setMobileMenuOpen(false)} className="flex-1 text-center py-2 bg-[#181820] text-gray-300 border border-gray-700/50 rounded-lg font-bold">Track</Link>
+                </div>
               </div>
             ) : (
               <div className="flex justify-between items-center text-xs">

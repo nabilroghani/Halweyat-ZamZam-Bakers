@@ -43,7 +43,7 @@ export default function CartDrawer() {
     message += `\n💳 *Subtotal*: *Rs. ${subtotal}*\n`;
     message += `Please confirm order delivery time!`;
 
-    window.open(`https://wa.me/923459000123?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/923275001166?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (

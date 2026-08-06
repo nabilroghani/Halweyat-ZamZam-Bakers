@@ -12,8 +12,9 @@ export const useCartStore = create(
       closeCart: () => set({ isCartOpen: false }),
       toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
 
-      addToCart: (product, quantity = 1, selectedOption = '') => {
-        const option = selectedOption || (product.weightOptions && product.weightOptions[0]) || product.unit || '1 Kg';
+      addToCart: (product, quantity = 1, selectedOption = '', customPrice = null) => {
+        const option = selectedOption || (product.weightOptions && product.weightOptions[0]) || product.unit || 'Standard';
+        const itemPrice = customPrice !== null ? customPrice : product.price;
         const currentCart = get().cart;
         
         const existingIndex = currentCart.findIndex(
@@ -23,6 +24,7 @@ export const useCartStore = create(
         if (existingIndex > -1) {
           const updated = [...currentCart];
           updated[existingIndex].quantity += quantity;
+          updated[existingIndex].price = itemPrice; // Ensure updated price applies
           set({ cart: updated });
         } else {
           set({
@@ -31,9 +33,9 @@ export const useCartStore = create(
               {
                 _id: product._id,
                 name: product.name,
-                price: product.price,
+                price: itemPrice,
                 imageUrl: product.imageUrl,
-                unit: product.unit || 'Kg',
+                unit: product.unit || 'Piece',
                 selectedOption: option,
                 quantity
               }

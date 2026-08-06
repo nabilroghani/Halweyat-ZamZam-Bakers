@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
-import { FiMail, FiLock, FiUserCheck } from 'react-icons/fi';
+import { FiMail, FiLock, FiUserCheck, FiEye, FiEyeOff } from 'react-icons/fi';
+import GoogleLoginButton from '../components/GoogleLoginButton';
+import OtpVerificationModal from '../components/OtpVerificationModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 export default function CustomerLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
@@ -23,13 +31,21 @@ export default function CustomerLogin() {
 
     try {
       const userData = await login(email, password);
-      if (userData.role === 'admin' || userData.role === 'receptionist') {
+      if (userData?.requiresOtp) {
+        setPendingEmail(userData.email || email);
+        setShowOtpModal(true);
+      } else if (userData.role === 'admin' || userData.role === 'receptionist') {
         navigate('/admin/dashboard');
       } else {
         navigate(redirectPath);
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Invalid email or password.');
+      if (err.requiresOtp) {
+        setPendingEmail(err.email || email);
+        setShowOtpModal(true);
+      } else {
+        setError(err.message || 'Login failed. Invalid email or password.');
+      }
     } finally {
       setLoading(false);
     }
@@ -37,6 +53,21 @@ export default function CustomerLogin() {
 
   return (
     <div className="min-h-screen bg-[#0d0d11] text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {showOtpModal && (
+        <OtpVerificationModal
+          email={pendingEmail}
+          redirectPath={redirectPath}
+          onClose={() => setShowOtpModal(false)}
+        />
+      )}
+
+      {showForgotModal && (
+        <ForgotPasswordModal
+          redirectPath={redirectPath}
+          onClose={() => setShowForgotModal(false)}
+        />
+      )}
+
       <div className="max-w-md w-full bg-[#14141a] border border-amber-500/20 rounded-3xl p-8 shadow-2xl space-y-6">
         
         <div className="text-center">
@@ -45,6 +76,15 @@ export default function CustomerLogin() {
           </div>
           <h2 className="text-2xl font-bold font-serif gold-gradient-text">Sign In to Your Account</h2>
           <p className="text-xs text-gray-400 mt-1">Enter your email and password to access your account</p>
+        </div>
+
+        {/* Google Sign-In Button */}
+        <GoogleLoginButton redirectPath={redirectPath} label="Sign in with Google" />
+
+        <div className="flex items-center gap-3 my-2">
+          <div className="flex-1 h-[1px] bg-amber-500/10" />
+          <span className="text-[10px] uppercase font-bold text-gray-500">Or Sign In with Email</span>
+          <div className="flex-1 h-[1px] bg-amber-500/10" />
         </div>
 
         {error && (
@@ -68,15 +108,32 @@ export default function CustomerLogin() {
           </div>
 
           <div>
-            <label className="block font-bold text-gray-300 mb-1">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block font-bold text-gray-300">Password</label>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(true)}
+                className="text-[11px] text-amber-400 hover:underline font-semibold"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="relative">
               <FiLock className="absolute left-3 top-3.5 text-gray-500" />
               <input 
-                type="password" required
+                type={showPassword ? 'text' : 'password'} required
                 value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
+                className="w-full pl-9 pr-10 py-2.5 bg-[#181820] border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-400"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-amber-400 transition"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEyeOff className="text-base" /> : <FiEye className="text-base" />}
+              </button>
             </div>
           </div>
 

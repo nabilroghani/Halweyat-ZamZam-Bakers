@@ -14,7 +14,13 @@ const userSchema = new mongoose.Schema({
   address: { type: String, default: '' },
   city: { type: String, default: 'Timergara' },
   avatar: { type: String, default: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  isEmailVerified: { type: Boolean, default: false },
+  emailVerificationOtp: { type: String, default: '' },
+  otpExpiresAt: { type: Date },
+  resetPasswordOtp: { type: String, default: '' },
+  resetPasswordOtpExpiresAt: { type: Date },
+  googleId: { type: String, default: '' }
 }, { timestamps: true });
 
 // Password hashing before saving

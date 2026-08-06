@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import CartDrawer from './components/CartDrawer';
+import JwtTokenInspector from './components/JwtTokenInspector';
 import SmoothScroll from './components/SmoothScroll';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -20,6 +21,8 @@ import Gallery from './pages/Gallery';
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerRegister from './pages/CustomerRegister';
 import CustomerOrders from './pages/CustomerOrders';
+import CustomerProfile from './pages/CustomerProfile';
+import TrackOrder from './pages/TrackOrder';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -60,6 +63,7 @@ export default function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/gallery" element={<Gallery />} />
+              <Route path="/track-order" element={<TrackOrder />} />
 
               {/* Customer Auth Routes */}
               <Route path="/login" element={<CustomerLogin />} />
@@ -69,6 +73,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={['customer', 'admin', 'receptionist']}>
                     <CustomerOrders />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute allowedRoles={['customer', 'admin', 'receptionist']}>
+                    <CustomerProfile />
                   </ProtectedRoute>
                 } 
               />
@@ -117,6 +129,7 @@ export default function App() {
           <Footer />
           <CartDrawer />
           <WhatsAppButton />
+          <JwtTokenInspector />
         </div>
       </SmoothScroll>
     </Router>

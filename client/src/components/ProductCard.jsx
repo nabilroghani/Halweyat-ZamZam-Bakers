@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCartStore } from '../store/useCartStore';
 import { FiShoppingBag, FiCheck, FiStar } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
+import { calculateOptionPrice } from '../utils/priceCalculator';
 
 export default function ProductCard({ product }) {
   const addToCart = useCartStore((state) => state.addToCart);
@@ -13,6 +14,11 @@ export default function ProductCard({ product }) {
   const [selectedOption, setSelectedOption] = useState(weightOpts[0]);
   const [added, setAdded] = useState(false);
 
+  // Compute dynamic price for the currently selected size / weight option
+  const currentPrice = calculateOptionPrice(product, selectedOption);
+  const priceRatio = product.price > 0 ? currentPrice / product.price : 1;
+  const currentOriginalPrice = product.originalPrice ? Math.round(product.originalPrice * priceRatio) : 0;
+
   const getOptionLabel = () => {
     const cat = product.category || '';
     if (cat.includes('Cakes')) return 'Select Weight (Pounds / Size)';
@@ -22,14 +28,14 @@ export default function ProductCard({ product }) {
   };
 
   const handleAddToCart = () => {
-    addToCart(product, 1, selectedOption);
+    addToCart(product, 1, selectedOption, currentPrice);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   const handleWhatsAppSingleItem = () => {
-    const text = `Hi Halwiyat Zamzam Bakers! I would like to order: *${product.name}* (${selectedOption}) - Rs. ${product.price}. Please confirm availability!`;
-    window.open(`https://wa.me/923459000123?text=${encodeURIComponent(text)}`, '_blank');
+    const text = `Hi Halwiyat Zamzam Bakers! I would like to order: *${product.name}* (${selectedOption}) - Rs. ${currentPrice}. Please confirm availability!`;
+    window.open(`https://wa.me/923275001166?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -46,6 +52,13 @@ export default function ProductCard({ product }) {
         <span className="absolute top-3 left-3 bg-[#121216]/80 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] uppercase font-bold px-3 py-1 rounded-full">
           {product.category}
         </span>
+
+        {/* Special Deal Discount Badge */}
+        {product.originalPrice > product.price && (
+          <span className="absolute top-3 right-3 bg-red-600 text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg border border-red-400/50 animate-pulse">
+            🔥 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+          </span>
+        )}
 
         {/* Availability Badge */}
         {!product.isAvailable && (
@@ -95,12 +108,12 @@ export default function ProductCard({ product }) {
         <div className="pt-3 border-t border-amber-500/10 space-y-3">
           <div className="flex justify-between items-baseline">
             <div>
-              <span className="text-lg font-bold font-mono text-amber-400">Rs. {product.price}</span>
-              {product.originalPrice > product.price && (
-                <span className="text-xs text-gray-500 line-through ml-2">Rs. {product.originalPrice}</span>
+              <span className="text-lg font-bold font-mono text-amber-400">Rs. {currentPrice}</span>
+              {currentOriginalPrice > currentPrice && (
+                <span className="text-xs text-gray-500 line-through ml-2">Rs. {currentOriginalPrice}</span>
               )}
             </div>
-            <span className="text-[10px] text-gray-400 font-medium">per {product.unit || 'Piece'}</span>
+            <span className="text-[10px] text-gray-400 font-medium">per {selectedOption}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

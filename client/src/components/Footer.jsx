@@ -64,6 +64,7 @@ export default function Footer() {
               <li><Link to="/menu" className="hover:text-[#C9982F] transition-colors">Full Bakery Menu</Link></li>
               <li><Link to="/about" className="hover:text-[#C9982F] transition-colors">Our Brand Story</Link></li>
               <li><Link to="/gallery" className="hover:text-[#C9982F] transition-colors">Sweet Gallery</Link></li>
+              <li><Link to="/track-order" className="hover:text-[#C9982F] transition-colors">Track My Order</Link></li>
               <li><Link to="/contact" className="hover:text-[#C9982F] transition-colors">Contact & Order</Link></li>
             </ul>
           </div>
@@ -109,7 +110,7 @@ export default function Footer() {
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/60 gap-4">
           <p>© {new Date().getFullYear()} Halwiyat Zamzam Bakers. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Timergara, Dir Lower • Premium Bakery Pitch
+            Timergara, Dir Lower • Freshly Made with ❤️
           </p>
         </div>
       </div>

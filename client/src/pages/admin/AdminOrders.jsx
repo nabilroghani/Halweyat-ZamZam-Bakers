@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { OrderService } from '../../services/api';
-import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX, FiPlus, FiPhone, FiUser } from 'react-icons/fi';
+import { OrderService, ProductService } from '../../services/api';
+import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX, FiPlus, FiPhone, FiUser, FiSlash } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa6';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -22,6 +23,9 @@ export default function AdminOrders() {
   const [posQuantity, setPosQuantity] = useState('1');
   const [posSubmitting, setPosSubmitting] = useState(false);
 
+  // Products list for POS dropdown
+  const [posProducts, setPosProducts] = useState([]);
+
   const loadOrders = async () => {
     setLoading(true);
     try {
@@ -37,6 +41,11 @@ export default function AdminOrders() {
   useEffect(() => {
     loadOrders();
   }, [statusFilter, search]);
+
+  // Load products for POS dropdown once
+  useEffect(() => {
+    ProductService.getAll().then(data => setPosProducts(data || [])).catch(() => {});
+  }, []);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
@@ -171,8 +180,20 @@ export default function AdminOrders() {
                         <div className="text-[11px] text-amber-300/80 font-mono">{ord.customerPhone}</div>
                       </td>
                       <td className="py-4 px-3">
-                        <span className="text-[11px] font-bold text-gray-300 block">{ord.orderType}</span>
-                        <span className="text-[10px] text-gray-500 line-clamp-1">{ord.customerAddress}</span>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${
+                          ord.orderType === 'Delivery'
+                            ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                            : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                        }`}>
+                          {ord.orderType === 'Delivery' ? '🛵 Home Delivery' : '🏪 Counter Pickup'}
+                        </span>
+                        <span className="text-[10px] text-gray-400 block mt-1 line-clamp-2 leading-tight">
+                          {ord.orderType === 'Delivery' ? (
+                            <>📍 <strong className="text-gray-300">Deliver To:</strong> {ord.customerAddress}</>
+                          ) : (
+                            <span className="text-purple-300/80 font-medium">Customer will pick up from counter</span>
+                          )}
+                        </span>
                       </td>
                       <td className="py-4 px-3">
                         <div className="space-y-1">
@@ -216,12 +237,42 @@ export default function AdminOrders() {
                         </select>
                       </td>
                       <td className="py-4 px-3 text-right">
-                        <button
-                          onClick={() => setSelectedReceipt(ord)}
-                          className="px-3 py-1.5 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5"
-                        >
-                          <FiPrinter /> Receipt
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedReceipt(ord)}
+                            className="px-3 py-1.5 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition"
+                          >
+                            <FiPrinter /> Receipt
+                          </button>
+                          <a
+                            href={`https://wa.me/${ord.customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                              `Salam ${ord.customerName}! Update on your order #${ord.orderId} from Halwiyat Zamzam Bakers Timergara:\n\n` +
+                              `📌 *Status*: *${ord.status.toUpperCase()}*\n` +
+                              `💳 *Total*: Rs. ${ord.totalAmount}\n` +
+                              `📍 *Type*: ${ord.orderType}\n\n` +
+                              (ord.status === 'Ready' ? '🎉 Your order is READY for pickup/delivery! Thank you!' : 'Thank you for choosing Halwiyat Zamzam Bakers!')
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1.5 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 border border-emerald-500/30 transition"
+                            title="Send WhatsApp update to customer"
+                          >
+                            <FaWhatsapp className="text-xs" /> Notify
+                          </a>
+                          {ord.status !== 'Delivered' && ord.status !== 'Cancelled' && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Cancel order #${ord.orderId} for ${ord.customerName}?`)) {
+                                  handleUpdateStatus(ord._id, 'Cancelled');
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 border border-red-500/20 transition"
+                              title="Cancel this order"
+                            >
+                              <FiSlash /> Cancel
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -361,15 +412,36 @@ export default function AdminOrders() {
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 mb-1 font-bold">Item Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Shahi Gulab Jamun"
+                    <label className="block text-gray-400 mb-1 font-bold">Select Product</label>
+                    <select
                       value={posItemName}
-                      onChange={(e) => setPosItemName(e.target.value)}
-                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400"
+                      onChange={(e) => {
+                        const selected = posProducts.find(p => p.name === e.target.value);
+                        setPosItemName(e.target.value);
+                        if (selected) {
+                          setPosPrice(selected.price.toString());
+                          setPosOption(selected.weightOptions?.[0] || '1 Pcs');
+                        }
+                      }}
+                      className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400 font-bold"
                       required
-                    />
+                    >
+                      <option value="">-- Select Product --</option>
+                      {posProducts.map(p => (
+                        <option key={p._id} value={p.name}>
+                          {p.name} — Rs. {p.price}
+                        </option>
+                      ))}
+                      <option value="Custom Item">➕ Custom / Other Item</option>
+                    </select>
+                    {posItemName === 'Custom Item' && (
+                      <input
+                        type="text"
+                        placeholder="Enter custom item name..."
+                        onChange={(e) => setPosItemName(e.target.value === 'Custom Item' ? '' : e.target.value)}
+                        className="w-full bg-[#121216] border border-amber-500/20 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400 mt-2"
+                      />
+                    )}
                   </div>
                 </div>
 

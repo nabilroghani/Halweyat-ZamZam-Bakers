@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { OrderService } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
-import { FiShoppingBag, FiClock, FiCheckCircle, FiUser, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiShoppingBag, FiClock, FiCheckCircle, FiUser, FiMapPin, FiPhone, FiShield, FiKey } from 'react-icons/fi';
 
 export default function CustomerOrders() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, toggleJwtModal } = useAuthStore();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 

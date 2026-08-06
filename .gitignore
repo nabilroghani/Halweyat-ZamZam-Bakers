@@ -1,0 +1,15 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.production
+server/.env
+client/.env
+
+# Build outputs
+dist
+build
+.cache

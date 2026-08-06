@@ -65,7 +65,7 @@ export default function CustomCakeBuilder() {
     msg += `\nPlease confirm order preparation and pickup time!`;
 
     const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/923459000123?text=${encoded}`, '_blank');
+    window.open(`https://wa.me/923275001166?text=${encoded}`, '_blank');
   };
 
   return (

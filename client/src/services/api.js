@@ -53,15 +53,25 @@ export const OrderService = {
   },
   getMyOrders: () => fetchAPI('/orders/my-orders'),
   track: (queryStr) => fetchAPI(`/orders/track/${queryStr}`),
-  updateStatus: (id, status) => fetchAPI(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+  updateStatus: (id, status, cancelReason = '') => fetchAPI(`/orders/${id}/status`, { 
+    method: 'PATCH', 
+    body: JSON.stringify({ status, cancelReason }) 
+  })
 };
 
 export const AuthService = {
   login: (credentials) => fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (userData) => fetchAPI('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
+  verifyOtp: (otpData) => fetchAPI('/auth/verify-otp', { method: 'POST', body: JSON.stringify(otpData) }),
+  resendOtp: (otpData) => fetchAPI('/auth/resend-otp', { method: 'POST', body: JSON.stringify(otpData) }),
+  forgotPassword: (data) => fetchAPI('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) }),
+  resetPassword: (data) => fetchAPI('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+  googleLogin: (payload) => fetchAPI('/auth/google', { method: 'POST', body: JSON.stringify(payload) }),
   getMe: () => fetchAPI('/auth/me'),
+  verifyToken: () => fetchAPI('/auth/verify-token'),
   getAllUsers: () => fetchAPI('/auth/users'),
-  createStaff: (staffData) => fetchAPI('/auth/create-staff', { method: 'POST', body: JSON.stringify(staffData) })
+  createStaff: (staffData) => fetchAPI('/auth/create-staff', { method: 'POST', body: JSON.stringify(staffData) }),
+  updateProfile: (profileData) => fetchAPI('/auth/profile', { method: 'PUT', body: JSON.stringify(profileData) })
 };
 
 export const ContactService = {

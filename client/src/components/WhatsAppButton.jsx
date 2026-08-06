@@ -2,7 +2,7 @@ import React from 'react';
 import { FaWhatsapp } from 'react-icons/fa6';
 
 export default function WhatsAppButton() {
-  const phoneNumber = '923459000123';
+  const phoneNumber = '923275001166';
   const defaultMessage = encodeURIComponent('Hello Halwiyat Zamzam Bakers! I would like to place an order from Timergara.');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${defaultMessage}`;
 
@@ -20,7 +20,7 @@ export default function WhatsAppButton() {
       </div>
 
       <span className="text-xs font-extrabold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-3">
-        Order on WhatsApp (+92 345 9000123)
+        Order on WhatsApp (+92 327 5001166)
       </span>
     </a>
   );

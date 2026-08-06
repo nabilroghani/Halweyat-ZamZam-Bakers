@@ -600,11 +600,20 @@ export default function AdminDashboard() {
                     <tr key={ord._id} className="hover:bg-amber-500/5">
                       <td className="py-4 px-3 font-mono font-bold text-amber-400">
                         #{ord.orderId}
-                        {ord.isCustomCake && (
-                          <span className="block text-[9px] font-sans font-black uppercase text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 mt-0.5">
-                            🎂 Custom Cake
+                        <div className="flex flex-col gap-1 mt-1">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase border w-fit ${
+                            ord.orderType === 'Delivery'
+                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                              : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                          }`}>
+                            {ord.orderType === 'Delivery' ? '🛵 Delivery' : '🏪 Pickup'}
                           </span>
-                        )}
+                          {ord.isCustomCake && (
+                            <span className="block text-[9px] font-sans font-black uppercase text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 w-fit">
+                              🎂 Custom Cake
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-3">
                         <div className="font-bold text-white">{ord.customerName}</div>

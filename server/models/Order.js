@@ -11,6 +11,7 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Linked customer account
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
   customerAddress: { type: String, default: '' },
@@ -24,6 +25,7 @@ const orderSchema = new mongoose.Schema({
     enum: ['Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'], 
     default: 'Pending' 
   },
+  cancelReason: { type: String, default: '' },
   notes: { type: String, default: '' },
   isCustomCake: { type: Boolean, default: false },
   customCakeDetails: {
