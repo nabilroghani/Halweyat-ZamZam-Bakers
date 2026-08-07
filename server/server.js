@@ -12,22 +12,21 @@ const app = express();
 const httpServer = createServer(app);
 
 // Socket.IO Real-Time Server
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-  }
-});
-
-// Store io in shared module (avoids circular dependency with routes)
-setIO(io);
-
-io.on('connection', (socket) => {
-  console.log(`🔌 Socket connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`🔌 Socket disconnected: ${socket.id}`);
+let io = null;
+if (!process.env.VERCEL) {
+  io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+    }
   });
-});
+  setIO(io);
+  io.on('connection', (socket) => {
+    console.log(`🔌 Socket connected: ${socket.id}`);
+  });
+} else {
+  setIO(null);
+}
 
 // Import routes AFTER io is initialized
 import authRoutes from './routes/auth.js';
@@ -58,8 +57,14 @@ export let inMemoryDB = {
 let isConnected = false;
 async function connectDB() {
   if (isConnected || mongoose.connection.readyState === 1) return;
+
+  if (process.env.VERCEL && (!process.env.MONGO_URI || process.env.MONGO_URI.includes('127.0.0.1') || process.env.MONGO_URI.includes('localhost'))) {
+    console.log('⚡ Vercel Serverless: Using Standalone In-Memory DB Mode');
+    return;
+  }
+
   try {
-    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 3000 });
+    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 2000 });
     isConnected = true;
     console.log('✅ Connected to MongoDB database successfully.');
   } catch (err) {
