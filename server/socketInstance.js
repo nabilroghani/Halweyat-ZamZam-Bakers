@@ -6,5 +6,5 @@ export function setIO(ioInstance) {
 }
 
 export function getIO() {
-  return io;
+  return io || { emit: () => {} };
 }

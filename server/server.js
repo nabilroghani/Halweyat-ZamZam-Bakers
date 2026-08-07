@@ -54,6 +54,25 @@ export let inMemoryDB = {
   ]
 };
 
+// Serverless DB Connection Caching
+let isConnected = false;
+async function connectDB() {
+  if (isConnected || mongoose.connection.readyState === 1) return;
+  try {
+    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 3000 });
+    isConnected = true;
+    console.log('✅ Connected to MongoDB database successfully.');
+  } catch (err) {
+    console.warn('⚠️ MongoDB connection offline. Server running in Standalone Fallback Mode.', err.message);
+  }
+}
+
+// Database Connection Middleware for Serverless Invocations
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 // Middleware
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '10mb' }));
@@ -72,27 +91,33 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     brand: 'Halwiyat Zamzam Bakers Timergara', 
-    version: '2.1.0',
+    version: '2.2.0',
     dbConnected: mongoose.connection.readyState === 1,
     socketConnections: io.engine?.clientsCount || 0,
+    isServerless: Boolean(process.env.VERCEL),
     time: new Date() 
   });
 });
 
-// Connect DB & Start Server
-mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 3000 })
-  .then(() => {
-    console.log('✅ Connected to MongoDB database successfully.');
+// Root API Handler
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    brand: 'Halwiyat Zamzam Bakers Timergara API',
+    version: '2.2.0',
+    healthCheck: '/api/health'
+  });
+});
+
+// Connect DB & Start Local Server (Only when not in Vercel Serverless environment)
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
     httpServer.listen(PORT, () => {
       console.log(`🚀 Halwiyat Zamzam Bakers API running on http://localhost:${PORT}`);
       console.log(`🔌 Socket.IO real-time server active on ws://localhost:${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.warn('⚠️ MongoDB connection offline. Server running in Standalone Fallback Mode.', err.message);
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 Halwiyat Zamzam Bakers API running on http://localhost:${PORT} (Standalone Mode)`);
-      console.log(`🔌 Socket.IO real-time server active on ws://localhost:${PORT}`);
-    });
   });
+}
+
+export default app;
 
