@@ -98,7 +98,7 @@ app.get('/api/health', (req, res) => {
     brand: 'Halwiyat Zamzam Bakers Timergara', 
     version: '2.2.0',
     dbConnected: mongoose.connection.readyState === 1,
-    socketConnections: io.engine?.clientsCount || 0,
+    socketConnections: io?.engine?.clientsCount || 0,
     isServerless: Boolean(process.env.VERCEL),
     time: new Date() 
   });
