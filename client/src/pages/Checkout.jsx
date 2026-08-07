@@ -99,12 +99,15 @@ export default function Checkout() {
         paymentMethod,
         notes: notes || (customCakeItem?.customCakeDetails?.specialInstructions ? `Cake Note: ${customCakeItem.customCakeDetails.specialInstructions}` : ''),
         isCustomCake: isCustomCakeOrder,
-        customCakeDetails: customCakeItem ? (customCakeItem.customCakeDetails || {
-          flavor: customCakeItem.name,
-          weight: customCakeItem.selectedOption,
-          shape: 'Custom',
-          toppingMessage: customCakeItem.selectedOption
-        }) : null,
+        customCakeDetails: customCakeItem ? {
+          ...(customCakeItem.customCakeDetails || {}),
+          flavor: customCakeItem.customCakeDetails?.flavor || customCakeItem.name,
+          weight: customCakeItem.customCakeDetails?.weight || customCakeItem.selectedOption || 'Standard',
+          shape: customCakeItem.customCakeDetails?.shape || 'Custom',
+          toppingMessage: customCakeItem.customCakeDetails?.toppingMessage || 'No text requested',
+          specialInstructions: customCakeItem.customCakeDetails?.specialInstructions || notes || '',
+          referencePhotoUrl: customCakeItem.imageUrl || ''
+        } : null,
         userId: user._id || user.id
       };
 

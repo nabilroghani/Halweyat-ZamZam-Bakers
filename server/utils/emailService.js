@@ -31,7 +31,7 @@ export const sendForgotPasswordEmail = async (email, name, otpCode) => {
 
     if (!transporter) {
       console.log(`ℹ️ [Nodemailer Reset] Code ${otpCode} generated for ${email}. (SMTP pending in .env)`);
-      return { success: false, message: 'SMTP credentials pending in server/.env', otpCode };
+      return { success: true, isDevFallback: true, otpCode };
     }
 
     const htmlTemplate = `
@@ -73,6 +73,10 @@ export const sendForgotPasswordEmail = async (email, name, otpCode) => {
       html: htmlTemplate
     });
 
+    if (info.rejected && info.rejected.length > 0) {
+      return { success: false, error: `Email address '${email}' rejected. Mailbox does not exist.` };
+    }
+
     console.log(`✅ [Nodemailer Reset] Code ${otpCode} sent to ${email}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -90,7 +94,7 @@ export const sendOtpVerificationEmail = async (email, name, otpCode) => {
 
     if (!transporter) {
       console.log(`ℹ️ [Nodemailer OTP] Code ${otpCode} generated for ${email}. (SMTP pending in .env)`);
-      return { success: false, message: 'SMTP credentials pending in server/.env', otpCode };
+      return { success: true, isDevFallback: true, otpCode };
     }
 
     const htmlTemplate = `
@@ -132,6 +136,10 @@ export const sendOtpVerificationEmail = async (email, name, otpCode) => {
       subject: `🔐 ${otpCode} is your Halwiyat Zamzam Verification Code`,
       html: htmlTemplate
     });
+
+    if (info.rejected && info.rejected.length > 0) {
+      return { success: false, error: `Email address '${email}' rejected by server. Mailbox does not exist.` };
+    }
 
     console.log(`✅ [Nodemailer OTP] Code ${otpCode} sent to ${email}`);
     return { success: true, messageId: info.messageId };

@@ -32,7 +32,9 @@ const orderSchema = new mongoose.Schema({
     flavor: String,
     weight: String,
     shape: String,
-    toppingMessage: String
+    toppingMessage: String,
+    specialInstructions: String,
+    referencePhotoUrl: String
   }
 }, { timestamps: true });
 

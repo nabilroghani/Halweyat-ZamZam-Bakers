@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 import { inMemoryDB } from '../server.js';
+import { getIO } from '../socketInstance.js';
 
 const router = express.Router();
 
@@ -82,6 +83,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
         tags: tags || []
       });
       const createdProduct = await product.save();
+      // 🔌 Real-time: Notify all clients of new product
+      getIO().emit('product-added', createdProduct);
       return res.status(201).json(createdProduct);
     }
 
@@ -104,6 +107,8 @@ router.post('/', protect, adminOnly, async (req, res) => {
       createdAt: new Date().toISOString()
     };
     inMemoryDB.products.unshift(newProduct);
+    // 🔌 Real-time: Notify all clients of new product (fallback mode)
+    getIO().emit('product-added', newProduct);
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -120,6 +125,8 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
 
       Object.assign(product, req.body);
       const updatedProduct = await product.save();
+      // 🔌 Real-time: Notify all clients of product update
+      getIO().emit('product-updated', updatedProduct);
       return res.json(updatedProduct);
     }
 
@@ -127,6 +134,8 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
     if (idx === -1) return res.status(404).json({ message: 'Product not found' });
 
     inMemoryDB.products[idx] = { ...inMemoryDB.products[idx], ...req.body };
+    // 🔌 Real-time: Notify all clients of product update (fallback mode)
+    getIO().emit('product-updated', inMemoryDB.products[idx]);
     res.json(inMemoryDB.products[idx]);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -143,6 +152,8 @@ router.patch('/:id/toggle-stock', protect, async (req, res) => {
 
       product.isAvailable = !product.isAvailable;
       await product.save();
+      // 🔌 Real-time: Notify all clients of stock change
+      getIO().emit('product-stock-updated', { _id: product._id, isAvailable: product.isAvailable, name: product.name });
       return res.json({ message: 'Stock status updated', isAvailable: product.isAvailable });
     }
 
@@ -150,6 +161,8 @@ router.patch('/:id/toggle-stock', protect, async (req, res) => {
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     product.isAvailable = !product.isAvailable;
+    // 🔌 Real-time: Notify all clients of stock change (fallback mode)
+    getIO().emit('product-stock-updated', { _id: product._id, isAvailable: product.isAvailable, name: product.name });
     res.json({ message: 'Stock status updated', isAvailable: product.isAvailable });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -165,10 +178,14 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
       if (!product) return res.status(404).json({ message: 'Product not found' });
 
       await Product.deleteOne({ _id: req.params.id });
+      // 🔌 Real-time: Notify all clients of product removal
+      getIO().emit('product-deleted', { _id: req.params.id });
       return res.json({ message: 'Product removed successfully' });
     }
 
     inMemoryDB.products = inMemoryDB.products.filter(p => p._id !== req.params.id);
+    // 🔌 Real-time: Notify all clients of product removal (fallback mode)
+    getIO().emit('product-deleted', { _id: req.params.id });
     res.json({ message: 'Product removed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

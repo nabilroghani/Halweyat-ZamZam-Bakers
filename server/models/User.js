@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
-  phone: { type: String, required: true },
+  phone: { type: String, default: '' },
   password: { type: String, required: true },
   role: { 
     type: String, 
@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema({
   otpExpiresAt: { type: Date },
   resetPasswordOtp: { type: String, default: '' },
   resetPasswordOtpExpiresAt: { type: Date },
-  googleId: { type: String, default: '' }
+  googleId: { type: String, default: '' },
+  favorites: [{ type: String }]
 }, { timestamps: true });
 
 // Password hashing before saving

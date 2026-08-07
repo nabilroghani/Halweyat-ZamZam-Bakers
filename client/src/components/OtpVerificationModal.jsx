@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { AuthService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,15 @@ export default function OtpVerificationModal({ email, onClose, redirectPath = '/
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendSuccess, setResendSuccess] = useState('');
+  const [countdown, setCountdown] = useState(60);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -38,11 +47,13 @@ export default function OtpVerificationModal({ email, onClose, redirectPath = '/
   };
 
   const handleResend = async () => {
+    if (countdown > 0) return;
     setError('');
     setResendSuccess('');
     try {
       await AuthService.resendOtp({ email });
       setResendSuccess(`A new 6-digit code has been sent to ${email}`);
+      setCountdown(60);
       setTimeout(() => setResendSuccess(''), 4000);
     } catch (err) {
       setError(err.message || 'Failed to resend code.');
@@ -137,9 +148,10 @@ export default function OtpVerificationModal({ email, onClose, redirectPath = '/
           <button
             type="button"
             onClick={handleResend}
-            className="text-amber-400 font-bold hover:underline"
+            disabled={countdown > 0}
+            className="text-amber-400 font-bold hover:underline disabled:opacity-50 disabled:no-underline"
           >
-            Resend 6-Digit Code
+            {countdown > 0 ? `Resend Code (${countdown}s)` : 'Resend 6-Digit Code'}
           </button>
         </div>
 

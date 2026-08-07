@@ -12,11 +12,113 @@
     background-color: #0d0d11;
     color: #f3f4f6;
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6, .font-serif {
     font-family: var(--font-serif);
   }
+}
+
+/* Light Theme Overrides (High-Contrast Luxury Cream Palette) */
+html.light-theme body,
+html.light-theme .bg-\[\#0d0d11\] {
+  background-color: #F7F5F0 !important;
+  color: #1C1917 !important;
+}
+
+html.light-theme header,
+html.light-theme .bg-\[\#0d0d11\]\/90,
+html.light-theme .bg-\[\#121216\]\/95 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(212, 175, 55, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(180, 140, 50, 0.08) !important;
+}
+
+/* Headings & Text in Light Mode */
+html.light-theme h1, 
+html.light-theme h2, 
+html.light-theme h3, 
+html.light-theme h4, 
+html.light-theme h5, 
+html.light-theme h6,
+html.light-theme .text-white,
+html.light-theme .text-gray-100,
+html.light-theme .text-gray-200 {
+  color: #1C1917 !important;
+}
+
+html.light-theme .text-gray-300,
+html.light-theme .text-gray-400 {
+  color: #44403C !important;
+}
+
+html.light-theme .text-gray-500 {
+  color: #78716C !important;
+}
+
+html.light-theme .gold-gradient-text {
+  background: linear-gradient(135deg, #B8860B 0%, #78350F 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Cards, Modals, Drawers & Surface Panels */
+html.light-theme .bg-\[\#121216\],
+html.light-theme .bg-\[\#14141a\],
+html.light-theme .bg-\[\#181820\],
+html.light-theme .bg-\[\#1c1c24\],
+html.light-theme .bg-\[\#15151c\] {
+  background-color: #FFFFFF !important;
+  color: #1C1917 !important;
+  border-color: rgba(212, 160, 23, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(180, 140, 50, 0.08) !important;
+}
+
+/* Inputs, Selects, Textareas */
+html.light-theme input,
+html.light-theme select,
+html.light-theme textarea {
+  background-color: #FFFFFF !important;
+  color: #1C1917 !important;
+  border-color: rgba(212, 160, 23, 0.4) !important;
+}
+
+html.light-theme input::placeholder,
+html.light-theme textarea::placeholder {
+  color: #A8A29E !important;
+}
+
+/* Secondary Buttons & Pills */
+html.light-theme .bg-\[\#181820\]\/90,
+html.light-theme .bg-\[\#14141a\]\/90 {
+  background-color: #F3EFE6 !important;
+  color: #78350F !important;
+  border-color: rgba(212, 160, 23, 0.4) !important;
+}
+
+/* Badges & Accents */
+html.light-theme .bg-amber-500\/10,
+html.light-theme .bg-amber-500\/20 {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #92400E !important;
+}
+
+html.light-theme .text-amber-400,
+html.light-theme .text-amber-300 {
+  color: #B8860B !important;
+}
+
+html.light-theme .text-amber-200\/60,
+html.light-theme .text-amber-300\/60 {
+  color: #854D0E !important;
+}
+
+/* Glassmorphism Panel */
+html.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  backdrop-filter: blur(16px) !important;
 }
 
 /* Gold Gradient utilities */
@@ -68,3 +170,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #D4AF37;
 }
+
+/* POS Thermal Receipt Print Media Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-receipt, .printable-receipt * {
+    visibility: visible;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+

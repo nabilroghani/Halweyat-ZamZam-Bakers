@@ -9,6 +9,9 @@ import SmoothScroll from './components/SmoothScroll';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import { useAuthStore } from './store/useAuthStore';
+import { useThemeStore } from './store/useThemeStore';
+import { useSocketStore } from './store/useSocket';
+import { useWishlistStore } from './store/useWishlistStore';
 
 import Home from './pages/Home';
 import Menu from './pages/Menu';
@@ -17,6 +20,7 @@ import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Gallery from './pages/Gallery';
+import Favorites from './pages/Favorites';
 
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerRegister from './pages/CustomerRegister';
@@ -28,6 +32,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminBanners from './pages/admin/AdminBanners';
 
 import NotFound from './pages/NotFound';
 
@@ -42,10 +47,17 @@ function ScrollToTop() {
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const initTheme = useThemeStore((state) => state.initTheme);
+  const connectSocket = useSocketStore((state) => state.connect);
+  const syncUserFavorites = useWishlistStore((state) => state.syncUserFavorites);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    checkAuth().then(() => {
+      syncUserFavorites();
+    });
+    initTheme();
+    connectSocket();
+  }, [checkAuth, initTheme, connectSocket, syncUserFavorites]);
 
   return (
     <Router>
@@ -63,6 +75,7 @@ export default function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/gallery" element={<Gallery />} />
+              <Route path="/favorites" element={<Favorites />} />
               <Route path="/track-order" element={<TrackOrder />} />
 
               {/* Customer Auth Routes */}
@@ -118,6 +131,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminUsers />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/banners" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminBanners />
                   </ProtectedRoute>
                 } 
               />

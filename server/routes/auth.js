@@ -208,17 +208,18 @@ router.post('/register', async (req, res) => {
         if (userExists.isEmailVerified) {
           return res.status(400).json({ message: 'An account with this email address already exists. Please Sign In.' });
         } else {
+          // Attempt to send email verification FIRST before saving OTP to DB
+          const mailRes = await sendOtpVerificationEmail(cleanEmail, name, otpCode);
+          if (!mailRes.success) {
+            return res.status(400).json({
+              message: mailRes.error || `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
+            });
+          }
+
           userExists.emailVerificationOtp = otpCode;
           userExists.otpExpiresAt = otpExpires;
           userExists.password = password;
           await userExists.save();
-
-          const mailRes = await sendOtpVerificationEmail(cleanEmail, name, otpCode);
-          if (!mailRes.success && mailRes.error) {
-            return res.status(400).json({
-              message: `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
-            });
-          }
 
           return res.status(200).json({
             requiresOtp: true,
@@ -230,9 +231,9 @@ router.post('/register', async (req, res) => {
 
       // Attempt to send email verification FIRST before creating user
       const mailRes = await sendOtpVerificationEmail(cleanEmail, name, otpCode);
-      if (!mailRes.success && mailRes.error) {
+      if (!mailRes.success) {
         return res.status(400).json({
-          message: `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
+          message: mailRes.error || `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
         });
       }
 
@@ -263,9 +264,9 @@ router.post('/register', async (req, res) => {
     }
 
     const mailRes = await sendOtpVerificationEmail(cleanEmail, name, otpCode);
-    if (!mailRes.success && mailRes.error) {
+    if (!mailRes.success) {
       return res.status(400).json({
-        message: `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
+        message: mailRes.error || `Email delivery failed! The email address '${cleanEmail}' does not exist or cannot receive emails. Please check for typos and enter a real active email address.`
       });
     }
 
@@ -375,19 +376,26 @@ router.post('/resend-otp', async (req, res) => {
       const user = await User.findOne({ email: cleanEmail });
       if (!user) return res.status(404).json({ message: 'User account not found' });
 
+      const mailRes = await sendOtpVerificationEmail(cleanEmail, user.name, otpCode);
+      if (!mailRes.success) {
+        return res.status(400).json({ message: mailRes.error || `Email delivery failed to ${cleanEmail}. Please check for typos.` });
+      }
+
       user.emailVerificationOtp = otpCode;
       user.otpExpiresAt = otpExpires;
       await user.save();
 
-      await sendOtpVerificationEmail(cleanEmail, user.name, otpCode);
       return res.json({ message: `New verification code sent to ${cleanEmail}` });
     }
 
     const memUser = inMemoryDB.users.find(u => u.email === cleanEmail);
     if (memUser) {
+      const mailRes = await sendOtpVerificationEmail(cleanEmail, memUser.name, otpCode);
+      if (!mailRes.success) {
+        return res.status(400).json({ message: mailRes.error || `Email delivery failed to ${cleanEmail}.` });
+      }
       memUser.emailVerificationOtp = otpCode;
       memUser.otpExpiresAt = otpExpires;
-      await sendOtpVerificationEmail(cleanEmail, memUser.name, otpCode);
     }
     res.json({ message: `New verification code sent to ${cleanEmail}` });
   } catch (error) {
@@ -404,8 +412,9 @@ router.post('/forgot-password', async (req, res) => {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    if (!isValidEmail(cleanEmail)) {
-      return res.status(400).json({ message: 'Please enter a valid email address' });
+    const mailboxCheck = await verifyRealMailboxExists(cleanEmail);
+    if (!mailboxCheck.valid) {
+      return res.status(400).json({ message: mailboxCheck.reason });
     }
 
     const otpCode = generate6DigitOtp();
@@ -417,11 +426,15 @@ router.post('/forgot-password', async (req, res) => {
         return res.status(404).json({ message: 'No account found with this email address' });
       }
 
+      const mailRes = await sendForgotPasswordEmail(cleanEmail, user.name, otpCode);
+      if (!mailRes.success) {
+        return res.status(400).json({ message: mailRes.error || `Failed to send password reset code to ${cleanEmail}.` });
+      }
+
       user.resetPasswordOtp = otpCode;
       user.resetPasswordOtpExpiresAt = otpExpires;
       await user.save();
 
-      await sendForgotPasswordEmail(cleanEmail, user.name, otpCode);
       return res.json({ success: true, email: cleanEmail, message: `6-digit password reset code sent to ${cleanEmail}` });
     }
 
@@ -431,9 +444,13 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(404).json({ message: 'No account found with this email address' });
     }
 
+    const mailRes = await sendForgotPasswordEmail(cleanEmail, memUser.name, otpCode);
+    if (!mailRes.success) {
+      return res.status(400).json({ message: mailRes.error || `Failed to send password reset code to ${cleanEmail}.` });
+    }
+
     memUser.resetPasswordOtp = otpCode;
     memUser.resetPasswordOtpExpiresAt = otpExpires;
-    await sendForgotPasswordEmail(cleanEmail, memUser.name, otpCode);
 
     res.json({ success: true, email: cleanEmail, message: `6-digit password reset code sent to ${cleanEmail}` });
   } catch (error) {
@@ -687,6 +704,66 @@ router.put('/profile', protect, async (req, res) => {
     const token = generateToken(updated);
 
     res.json({ ...updated, token });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Get user's saved favorites array
+// @route   GET /api/auth/favorites
+router.get('/favorites', protect, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findById(req.user._id);
+      return res.json(user?.favorites || []);
+    }
+
+    const user = inMemoryDB.users.find(u => u._id === req.user._id?.toString());
+    return res.json(user?.favorites || []);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Toggle a product ID in user's permanent favorites list
+// @route   POST /api/auth/favorites/toggle
+router.post('/favorites/toggle', protect, async (req, res) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      return res.status(400).json({ message: 'ProductId is required' });
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findById(req.user._id);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+
+      if (!user.favorites) user.favorites = [];
+      
+      const index = user.favorites.indexOf(productId);
+      if (index > -1) {
+        user.favorites.splice(index, 1);
+      } else {
+        user.favorites.push(productId);
+      }
+
+      await user.save();
+      return res.json({ favorites: user.favorites });
+    }
+
+    // In-memory fallback
+    const user = inMemoryDB.users.find(u => u._id === req.user._id?.toString());
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (!user.favorites) user.favorites = [];
+    const index = user.favorites.indexOf(productId);
+    if (index > -1) {
+      user.favorites.splice(index, 1);
+    } else {
+      user.favorites.push(productId);
+    }
+
+    res.json({ favorites: user.favorites });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,16 +1,73 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ProductService } from '../services/api';
+import { ProductService, BannerService } from '../services/api';
 import { useCartStore } from '../store/useCartStore';
-import { motion } from 'framer-motion';
-import { FaUtensils, FaRibbon, FaAward, FaSeedling, FaArrowRight, FaStar, FaWhatsapp, FaCakeCandles } from 'react-icons/fa6';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaUtensils, FaRibbon, FaAward, FaSeedling, FaArrowRight, FaStar, FaWhatsapp, FaCakeCandles, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { FiShoppingBag } from 'react-icons/fi';
+
+const defaultFallbackBanners = [
+  {
+    _id: 'b-1',
+    badge: '🎉 10TH ANNIVERSARY GRAND CELEBRATION • AUG 10',
+    title: 'Halwiyat Zamzam Anniversary Sale',
+    subtitle: 'Celebrating 10 years of sweet traditions in Timergara with mega discounts & special family deals!',
+    imageUrl: 'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=1920&q=80'
+  },
+  {
+    _id: 'b-2',
+    badge: '👑 100% PURE DESI GHEE HERITAGE',
+    title: 'Shahi Sweets & Turkish Baklava',
+    subtitle: 'Authentic Gulab Jamun, Rasmalai, and Turkish Baklava prepared fresh daily.',
+    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=1920&q=80'
+  },
+  {
+    _id: 'b-3',
+    badge: '🎂 MASTER PASTRY CHEF STUDIO',
+    title: 'Custom Birthday & Event Cakes',
+    subtitle: 'Personalized multi-tier cakes with custom design photo upload & custom flavor options.',
+    imageUrl: 'https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=1920&q=80'
+  }
+];
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [banners, setBanners] = useState(defaultFallbackBanners);
   const [loading, setLoading] = useState(true);
   const [addedItemIds, setAddedItemIds] = useState({});
+  const [currentSlide, setCurrentSlide] = useState(0);
   const addToCart = useCartStore((state) => state.addToCart);
+
+  useEffect(() => {
+    const loadBanners = async () => {
+      try {
+        const data = await BannerService.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          setBanners(data);
+        }
+      } catch (err) {
+        console.error('Error loading banners:', err);
+      }
+    };
+    loadBanners();
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % banners.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length);
+  };
+
+  // Auto-play Slider every 4.5 seconds
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const timer = setInterval(() => {
+      nextSlide();
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [currentSlide, banners]);
 
   const handleHomeAddToCart = (item) => {
     addToCart(item);
@@ -57,52 +114,135 @@ export default function Home() {
     }
   ];
 
+  const activeBanner = banners[currentSlide] || banners[0] || defaultFallbackBanners[0];
+  const bannerImage = activeBanner.imageUrl || activeBanner.image;
+
   return (
     <div className="overflow-hidden bg-[#0d0d11] text-gray-100">
       
-      {/* 1. CINEMATIC HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-20 px-4">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-1000"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=1920&q=80')`,
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d11] via-[#0d0d11]/80 to-black/70" />
+      {/* 1. CINEMATIC INTERACTIVE ANNIVERSARY HERO SLIDER */}
+      <section className="relative min-h-[82vh] sm:min-h-[88vh] flex flex-col justify-between items-center overflow-hidden pt-8 pb-6 px-4 sm:px-8 group">
+        
+        {/* Background Image Carousel Slider */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeBanner._id || activeBanner.id || currentSlide}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.7 }}
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url('${bannerImage}')` }}
+          >
+            {/* Subtle Gradient for Contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/25 to-[#0d0d11]" />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* TOP SECTION: Badge & Title pushed to the TOP */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto space-y-4 pt-4 sm:pt-8 w-full">
+          {/* Optional Anniversary Badge */}
+          {activeBanner.badge && activeBanner.badge.trim() !== '' && (
+            <motion.div 
+              key={`badge-${activeBanner._id || currentSlide}`}
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <span className="inline-block px-6 py-2.5 rounded-full bg-amber-500/25 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] backdrop-blur-md shadow-2xl shadow-amber-500/20">
+                {activeBanner.badge}
+              </span>
+            </motion.div>
+          )}
+
+          {/* Optional Banner Title */}
+          {activeBanner.title && activeBanner.title.trim() !== '' && (
+            <motion.h1 
+              key={`title-${activeBanner._id || currentSlide}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl sm:text-6xl font-extrabold font-serif text-white tracking-tight leading-tight gold-gradient-text drop-shadow-2xl"
+            >
+              {activeBanner.title}
+            </motion.h1>
+          )}
+
+          {/* Optional Banner Subtitle */}
+          {activeBanner.subtitle && activeBanner.subtitle.trim() !== '' && (
+            <motion.p
+              key={`sub-${activeBanner._id || currentSlide}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs sm:text-base text-amber-100 font-semibold leading-relaxed bg-[#0d0d11]/85 backdrop-blur-md px-6 py-3 rounded-2xl border border-amber-500/40 shadow-2xl max-w-xl mx-auto"
+            >
+              {activeBanner.subtitle}
+            </motion.p>
+          )}
         </div>
 
-        <div className="relative z-10 text-center max-w-5xl mx-auto space-y-6">
-          <span className="inline-block px-5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-[0.25em] backdrop-blur-md">
-            ✨ Timergara’s Premium Sweets & Bakers
-          </span>
+        {/* MIDDLE SPACER AREA: Guarantees generous open space for the banner image */}
+        <div className="flex-1 min-h-[140px] sm:min-h-[220px]" />
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold font-serif text-white tracking-tight leading-none">
-            Taste the Traditions of <br />
-            <span className="gold-gradient-text">
-              Pure Sweet Excellence
-            </span>
-          </h1>
-
-          <p className="text-sm sm:text-lg text-gray-300 font-sans font-medium leading-relaxed bg-[#14141a]/80 backdrop-blur-md px-6 py-4 rounded-2xl max-w-2xl mx-auto border border-amber-500/20 shadow-2xl">
-            Artisanal cakes, traditional Pakistani mithai, hot fast food snacks, and morning fresh bakery delights prepared daily in Timergara, Dir Lower.
-          </p>
-
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* BOTTOM SECTION: Action Buttons & Indicators fixed at the BOTTOM */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto w-full space-y-5 pb-2">
+          {/* The 2 Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/menu"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold uppercase tracking-widest transition-all duration-300 shadow-xl shadow-amber-500/20 hover:scale-105 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-extrabold uppercase tracking-widest transition-all duration-300 shadow-2xl shadow-amber-500/40 hover:scale-105 flex items-center justify-center gap-2 border border-amber-300/40"
             >
-              <FiShoppingBag className="text-base" /> Explore Bakery Menu
+              <FiShoppingBag className="text-base sm:text-lg" /> Explore Bakery Menu
             </Link>
 
             <Link
               to="/custom-cake"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#181820] hover:bg-[#20202a] text-amber-300 border border-amber-500/40 text-xs font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#14141a]/90 backdrop-blur-md hover:bg-[#1f1f28] text-amber-300 border border-amber-500/50 text-xs sm:text-sm font-extrabold uppercase tracking-widest transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-2xl"
             >
-              <FaCakeCandles className="text-base" /> Custom Cake Studio
+              <FaCakeCandles className="text-base sm:text-lg" /> Custom Cake Studio
             </Link>
           </div>
+
+          {/* Slide Pagination Dots */}
+          {banners.length > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-1">
+              {banners.map((b, idx) => (
+                <button
+                  key={b._id || idx}
+                  type="button"
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    currentSlide === idx 
+                      ? 'w-8 bg-amber-400 shadow-md shadow-amber-500/50' 
+                      : 'w-2.5 bg-gray-500/50 hover:bg-amber-500/40'
+                  }`}
+                  title={`Banner ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Prev & Next Arrow Controls */}
+        {banners.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3.5 rounded-2xl bg-black/50 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 backdrop-blur-md transition group-hover:opacity-100 sm:opacity-80 z-20"
+              title="Previous Banner"
+            >
+              <FaChevronLeft className="text-lg" />
+            </button>
+
+            <button
+              type="button"
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3.5 rounded-2xl bg-black/50 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 backdrop-blur-md transition group-hover:opacity-100 sm:opacity-80 z-20"
+              title="Next Banner"
+            >
+              <FaChevronRight className="text-lg" />
+            </button>
+          </>
+        )}
       </section>
 
       {/* 2. SIGNATURE PRODUCTS SHOWCASE */}

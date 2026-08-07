@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import { inMemoryDB } from '../server.js';
+import { getIO } from '../socketInstance.js';
 import { isValidPakistaniPhone, formatPakistaniPhone } from '../utils/validation.js';
 import { sendOrderConfirmationEmail } from '../utils/emailService.js';
 
@@ -94,6 +95,9 @@ router.post('/', async (req, res) => {
     sendOrderConfirmationEmail(createdOrderObj).catch(err => {
       console.error('Nodemailer background dispatch log:', err);
     });
+
+    // 🔌 Real-time: Notify admin/receptionist of new order
+    getIO().emit('new-order', createdOrderObj);
 
     return res.status(201).json(createdOrderObj);
   } catch (error) {
@@ -215,6 +219,8 @@ router.patch('/:id/status', protect, authorizeRoles('admin', 'receptionist'), as
         order.cancelReason = cancelReason;
       }
       const updatedOrder = await order.save();
+      // 🔌 Real-time: Notify customers of order status change
+      getIO().emit('order-status-updated', { _id: updatedOrder._id, orderId: updatedOrder.orderId, status: updatedOrder.status, cancelReason: updatedOrder.cancelReason });
       return res.json(updatedOrder);
     }
 
@@ -225,6 +231,8 @@ router.patch('/:id/status', protect, authorizeRoles('admin', 'receptionist'), as
     if (status === 'Cancelled' && cancelReason) {
       order.cancelReason = cancelReason;
     }
+    // 🔌 Real-time: Notify customers of order status change (fallback mode)
+    getIO().emit('order-status-updated', { _id: order._id, orderId: order.orderId, status: order.status, cancelReason: order.cancelReason });
     res.json(order);
   } catch (error) {
     res.status(400).json({ message: error.message });

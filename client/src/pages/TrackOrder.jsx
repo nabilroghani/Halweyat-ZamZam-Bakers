@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { OrderService } from '../services/api';
 import { FiSearch, FiPackage, FiClock, FiCheckCircle, FiPhone, FiMapPin, FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSocket } from '../store/useSocket';
 
 const STATUS_STEPS = ['Pending', 'Preparing', 'Ready', 'Delivered'];
 
@@ -21,6 +22,28 @@ export default function TrackOrder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+
+  // 🔌 Socket.IO Real-Time: Live order status updates on track page
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleStatusUpdated = (data) => {
+      setResults(prev => {
+        if (!prev || !Array.isArray(prev)) return prev;
+        return prev.map(o =>
+          (o._id === data._id || o.orderId === data.orderId) 
+            ? { ...o, status: data.status, cancelReason: data.cancelReason } 
+            : o
+        );
+      });
+    };
+
+    socket.on('order-status-updated', handleStatusUpdated);
+
+    return () => {
+      socket.off('order-status-updated', handleStatusUpdated);
+    };
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();

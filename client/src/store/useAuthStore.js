@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthService } from '../services/api';
+import { useWishlistStore } from './useWishlistStore';
 
 export const useAuthStore = create(
   persist(
@@ -25,6 +26,8 @@ export const useAuthStore = create(
 
         localStorage.setItem('zamzam_auth_token', data.token);
         set({ user: userData, token: data.token });
+        // Sync logged-in user's permanent favorites from database
+        setTimeout(() => useWishlistStore.getState().syncUserFavorites(), 100);
         return userData;
       },
 
@@ -42,6 +45,7 @@ export const useAuthStore = create(
 
         localStorage.setItem('zamzam_auth_token', data.token);
         set({ user: userData, token: data.token });
+        setTimeout(() => useWishlistStore.getState().syncUserFavorites(), 100);
         return userData;
       },
 
@@ -59,6 +63,7 @@ export const useAuthStore = create(
 
         localStorage.setItem('zamzam_auth_token', data.token);
         set({ user: userData, token: data.token });
+        setTimeout(() => useWishlistStore.getState().syncUserFavorites(), 100);
         return userData;
       },
 
@@ -69,6 +74,8 @@ export const useAuthStore = create(
 
       logout: () => {
         localStorage.removeItem('zamzam_auth_token');
+        localStorage.removeItem('zamzam-wishlist');
+        useWishlistStore.getState().clearFavorites();
         set({ user: null, token: null });
       },
 

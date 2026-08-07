@@ -1,19 +1,44 @@
 import express from 'express';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { setIO } from './socketInstance.js';
 
+dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+
+// Socket.IO Real-Time Server
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+  }
+});
+
+// Store io in shared module (avoids circular dependency with routes)
+setIO(io);
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Socket connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`🔌 Socket disconnected: ${socket.id}`);
+  });
+});
+
+// Import routes AFTER io is initialized
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import categoryRoutes from './routes/categories.js';
 import orderRoutes from './routes/orders.js';
 import contactRoutes from './routes/contact.js';
 import uploadRoutes from './routes/upload.js';
+import bannerRoutes from './routes/banners.js';
 import { sampleProducts, sampleCategories } from './data/seedData.js';
 
-dotenv.config();
-
-const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/halwiyat_zamzam';
 
@@ -40,14 +65,16 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/banners', bannerRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     brand: 'Halwiyat Zamzam Bakers Timergara', 
-    version: '2.0.0',
+    version: '2.1.0',
     dbConnected: mongoose.connection.readyState === 1,
+    socketConnections: io.engine?.clientsCount || 0,
     time: new Date() 
   });
 });
@@ -56,13 +83,16 @@ app.get('/api/health', (req, res) => {
 mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 3000 })
   .then(() => {
     console.log('✅ Connected to MongoDB database successfully.');
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Halwiyat Zamzam Bakers API running on http://localhost:${PORT}`);
+      console.log(`🔌 Socket.IO real-time server active on ws://localhost:${PORT}`);
     });
   })
   .catch((err) => {
     console.warn('⚠️ MongoDB connection offline. Server running in Standalone Fallback Mode.', err.message);
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Halwiyat Zamzam Bakers API running on http://localhost:${PORT} (Standalone Mode)`);
+      console.log(`🔌 Socket.IO real-time server active on ws://localhost:${PORT}`);
     });
   });
+

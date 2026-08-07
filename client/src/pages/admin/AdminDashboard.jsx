@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductService, OrderService, UserService } from '../../services/api';
 import { useAuthStore } from '../../store/useAuthStore';
+import { getSocket } from '../../store/useSocket';
 import { 
   FiBox, 
   FiShoppingBag, 
@@ -17,7 +18,8 @@ import {
   FiAward,
   FiCalendar,
   FiBarChart2,
-  FiCheck
+  FiCheck,
+  FiWifi
 } from 'react-icons/fi';
 
 export default function AdminDashboard() {
@@ -50,6 +52,43 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // 🔌 Socket.IO Real-Time: Auto-reload dashboard on new order or status change
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleNewOrder = (newOrder) => {
+      setOrders(prev => [newOrder, ...prev.filter(o => o._id !== newOrder._id)]);
+    };
+
+    const handleStatusUpdated = (data) => {
+      setOrders(prev => prev.map(o =>
+        (o._id === data._id || o.orderId === data.orderId) 
+          ? { ...o, status: data.status } 
+          : o
+      ));
+    };
+
+    const handleProductEvent = () => {
+      ProductService.getAll().then(d => setProducts(d || [])).catch(() => {});
+    };
+
+    socket.on('new-order', handleNewOrder);
+    socket.on('order-status-updated', handleStatusUpdated);
+    socket.on('product-added', handleProductEvent);
+    socket.on('product-updated', handleProductEvent);
+    socket.on('product-deleted', handleProductEvent);
+    socket.on('product-stock-updated', handleProductEvent);
+
+    return () => {
+      socket.off('new-order', handleNewOrder);
+      socket.off('order-status-updated', handleStatusUpdated);
+      socket.off('product-added', handleProductEvent);
+      socket.off('product-updated', handleProductEvent);
+      socket.off('product-deleted', handleProductEvent);
+      socket.off('product-stock-updated', handleProductEvent);
+    };
   }, []);
 
   // Strict Real-Data Order Status Calculations

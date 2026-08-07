@@ -3,6 +3,7 @@ import ProductCard from '../components/ProductCard';
 import FilterBar from '../components/FilterBar';
 import { ProductService } from '../services/api';
 import { FiSearch, FiRefreshCw } from 'react-icons/fi';
+import { getSocket } from '../store/useSocket';
 
 export default function Menu() {
   const [products, setProducts] = useState([]);
@@ -36,6 +37,42 @@ export default function Menu() {
       setLoading(false);
     }
   };
+
+  // 🔌 Socket.IO Real-Time: Live product & stock updates for customers
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleStockUpdated = (data) => {
+      setProducts(prev => prev.map(p => p._id === data._id ? { ...p, isAvailable: data.isAvailable } : p));
+    };
+
+    const handleProductAdded = (newProduct) => {
+      // Only add if category matches or we're on 'All'
+      if (activeCategory === 'All' || newProduct.category === activeCategory) {
+        setProducts(prev => [newProduct, ...prev.filter(p => p._id !== newProduct._id)]);
+      }
+    };
+
+    const handleProductUpdated = (updatedProduct) => {
+      setProducts(prev => prev.map(p => p._id === updatedProduct._id ? updatedProduct : p));
+    };
+
+    const handleProductDeleted = (data) => {
+      setProducts(prev => prev.filter(p => p._id !== data._id));
+    };
+
+    socket.on('product-stock-updated', handleStockUpdated);
+    socket.on('product-added', handleProductAdded);
+    socket.on('product-updated', handleProductUpdated);
+    socket.on('product-deleted', handleProductDeleted);
+
+    return () => {
+      socket.off('product-stock-updated', handleStockUpdated);
+      socket.off('product-added', handleProductAdded);
+      socket.off('product-updated', handleProductUpdated);
+      socket.off('product-deleted', handleProductDeleted);
+    };
+  }, [activeCategory]);
 
   const displayedProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

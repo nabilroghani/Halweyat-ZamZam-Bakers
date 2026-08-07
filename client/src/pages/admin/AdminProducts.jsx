@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductService } from '../../services/api';
 import { FiPlus, FiTrash2, FiEdit2, FiCheck, FiX, FiSearch, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { getSocket } from '../../store/useSocket';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -37,6 +38,39 @@ export default function AdminProducts() {
 
   useEffect(() => {
     loadProducts();
+  }, []);
+
+  // 🔌 Socket.IO Real-Time Product Listeners
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleProductAdded = (newProduct) => {
+      setProducts(prev => [newProduct, ...prev.filter(p => p._id !== newProduct._id)]);
+    };
+
+    const handleProductUpdated = (updatedProduct) => {
+      setProducts(prev => prev.map(p => p._id === updatedProduct._id ? updatedProduct : p));
+    };
+
+    const handleProductDeleted = (data) => {
+      setProducts(prev => prev.filter(p => p._id !== data._id));
+    };
+
+    const handleStockUpdated = (data) => {
+      setProducts(prev => prev.map(p => p._id === data._id ? { ...p, isAvailable: data.isAvailable } : p));
+    };
+
+    socket.on('product-added', handleProductAdded);
+    socket.on('product-updated', handleProductUpdated);
+    socket.on('product-deleted', handleProductDeleted);
+    socket.on('product-stock-updated', handleStockUpdated);
+
+    return () => {
+      socket.off('product-added', handleProductAdded);
+      socket.off('product-updated', handleProductUpdated);
+      socket.off('product-deleted', handleProductDeleted);
+      socket.off('product-stock-updated', handleStockUpdated);
+    };
   }, []);
 
   const openAddModal = () => {

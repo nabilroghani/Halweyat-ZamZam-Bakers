@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useCartStore } from '../store/useCartStore';
-import { FiShoppingBag, FiCheck, FiStar } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
+import { useWishlistStore } from '../store/useWishlistStore';
+import { FiShoppingBag, FiCheck, FiStar, FiHeart } from 'react-icons/fi';
+import { FaHeart, FaWhatsapp } from 'react-icons/fa6';
 import { calculateOptionPrice } from '../utils/priceCalculator';
 
 export default function ProductCard({ product }) {
   const addToCart = useCartStore((state) => state.addToCart);
+  const { toggleFavorite, isFavorite } = useWishlistStore();
+  const favorited = isFavorite(product._id);
   
   const weightOpts = product.weightOptions && product.weightOptions.length > 0
     ? product.weightOptions
@@ -53,9 +56,26 @@ export default function ProductCard({ product }) {
           {product.category}
         </span>
 
+        {/* Favorite Heart Button (Top-Right Positioned) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(product);
+          }}
+          className={`absolute top-3 right-3 z-10 p-2.5 rounded-full backdrop-blur-md transition-all duration-300 shadow-xl ${
+            favorited
+              ? 'bg-red-600 text-white scale-110 shadow-red-500/30 ring-2 ring-red-400'
+              : 'bg-[#121216]/85 text-gray-300 hover:text-red-400 hover:bg-[#121216] border border-white/10'
+          }`}
+          title={favorited ? 'Remove from Favorites' : 'Save to My Favorites'}
+        >
+          {favorited ? <FaHeart className="text-sm text-white" /> : <FiHeart className="text-sm" />}
+        </button>
+
         {/* Special Deal Discount Badge */}
         {product.originalPrice > product.price && (
-          <span className="absolute top-3 right-3 bg-red-600 text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg border border-red-400/50 animate-pulse">
+          <span className="absolute bottom-3 left-3 bg-red-600 text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg border border-red-400/50 animate-pulse">
             🔥 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
           </span>
         )}

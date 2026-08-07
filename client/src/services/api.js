@@ -71,7 +71,9 @@ export const AuthService = {
   verifyToken: () => fetchAPI('/auth/verify-token'),
   getAllUsers: () => fetchAPI('/auth/users'),
   createStaff: (staffData) => fetchAPI('/auth/create-staff', { method: 'POST', body: JSON.stringify(staffData) }),
-  updateProfile: (profileData) => fetchAPI('/auth/profile', { method: 'PUT', body: JSON.stringify(profileData) })
+  updateProfile: (profileData) => fetchAPI('/auth/profile', { method: 'PUT', body: JSON.stringify(profileData) }),
+  getFavorites: () => fetchAPI('/auth/favorites'),
+  toggleFavorite: (productId) => fetchAPI('/auth/favorites/toggle', { method: 'POST', body: JSON.stringify({ productId }) })
 };
 
 export const ContactService = {
@@ -83,3 +85,12 @@ export const UserService = {
   ...AuthService,
   getAll: () => fetchAPI('/auth/users')
 };
+
+export const BannerService = {
+  getAll: (all = false) => fetchAPI(`/banners${all ? '?all=true' : ''}`),
+  create: (data) => fetchAPI('/banners', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/banners/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  toggle: (id) => fetchAPI(`/banners/${id}/toggle`, { method: 'PATCH' }),
+  delete: (id) => fetchAPI(`/banners/${id}`, { method: 'DELETE' })
+};
+

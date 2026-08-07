@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { OrderService, ProductService } from '../../services/api';
-import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX, FiPlus, FiPhone, FiUser, FiSlash } from 'react-icons/fi';
+import { FiShoppingBag, FiSearch, FiCheckCircle, FiClock, FiCheck, FiPrinter, FiX, FiPlus, FiPhone, FiUser, FiSlash, FiCamera, FiMaximize2, FiEye, FiWifi } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa6';
+import { getSocket } from '../../store/useSocket';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [liveAlert, setLiveAlert] = useState(null);
 
   const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [zoomedImageModal, setZoomedImageModal] = useState(null);
 
   // Counter POS Order Modal State
   const [isPosOpen, setIsPosOpen] = useState(false);
@@ -45,6 +48,35 @@ export default function AdminOrders() {
   // Load products for POS dropdown once
   useEffect(() => {
     ProductService.getAll().then(data => setPosProducts(data || [])).catch(() => {});
+  }, []);
+
+  // 🔌 Socket.IO Real-Time Listeners
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleNewOrder = (newOrder) => {
+      setOrders(prev => [newOrder, ...prev.filter(o => o._id !== newOrder._id)]);
+      setLiveAlert(`🔔 New Order ${newOrder.orderId} from ${newOrder.customerName || 'Walk-In'}`);
+      // Play notification sound
+      try { new Audio('data:audio/wav;base64,UklGRl9vT19teleYXNzZXQ=').play().catch(() => {}); } catch {}
+      setTimeout(() => setLiveAlert(null), 5000);
+    };
+
+    const handleStatusUpdated = (data) => {
+      setOrders(prev => prev.map(o =>
+        (o._id === data._id || o.orderId === data.orderId) 
+          ? { ...o, status: data.status, cancelReason: data.cancelReason } 
+          : o
+      ));
+    };
+
+    socket.on('new-order', handleNewOrder);
+    socket.on('order-status-updated', handleStatusUpdated);
+
+    return () => {
+      socket.off('new-order', handleNewOrder);
+      socket.off('order-status-updated', handleStatusUpdated);
+    };
   }, []);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
@@ -93,6 +125,17 @@ export default function AdminOrders() {
   return (
     <div className="min-h-screen bg-[#0d0d11] text-white p-6 md:p-10">
       <div className="max-w-7xl mx-auto space-y-8">
+
+        {/* 🔌 Real-Time Live Alert Toast */}
+        {liveAlert && (
+          <div className="animate-pulse bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-bold shadow-lg shadow-emerald-500/10">
+            <FiWifi className="text-emerald-400 text-lg animate-bounce" />
+            <span>{liveAlert}</span>
+            <button onClick={() => setLiveAlert(null)} className="ml-auto text-emerald-400 hover:text-white">
+              <FiX />
+            </button>
+          </div>
+        )}
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/20 pb-6">
@@ -203,14 +246,62 @@ export default function AdminOrders() {
                             </div>
                           ))}
 
-                          {ord.isCustomCake && ord.customCakeDetails && (
-                            <div className="mt-2 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl space-y-1 text-[11px]">
-                              <div className="text-amber-400 font-bold">🎂 Custom Cake Specs:</div>
-                              <div>🍰 <strong>Flavor:</strong> {ord.customCakeDetails.flavor}</div>
-                              <div>⚖️ <strong>Weight:</strong> {ord.customCakeDetails.weight}</div>
-                              <div>📐 <strong>Shape:</strong> {ord.customCakeDetails.shape}</div>
-                              <div>✍️ <strong>Text on Cake:</strong> "{ord.customCakeDetails.toppingMessage}"</div>
-                              {ord.notes && <div className="text-gray-400">📝 <strong>Note:</strong> {ord.notes}</div>}
+                          {ord.isCustomCake && (
+                            <div className="mt-2 bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl space-y-2 text-[11px]">
+                              <div className="text-amber-400 font-bold text-xs flex items-center justify-between border-b border-amber-500/20 pb-1">
+                                <span>🎂 Custom Cake Specifications</span>
+                                <span className="text-[9px] uppercase tracking-wider bg-amber-500/20 px-2 py-0.5 rounded-full text-amber-300">Kitchen Spec</span>
+                              </div>
+
+                              {ord.customCakeDetails && (
+                                <div className="space-y-1">
+                                  <div>🍰 <strong>Flavor:</strong> {ord.customCakeDetails.flavor || 'Standard'}</div>
+                                  <div>⚖️ <strong>Weight:</strong> {ord.customCakeDetails.weight || '1 Lb'}</div>
+                                  <div>📐 <strong>Shape:</strong> {ord.customCakeDetails.shape || 'Round'}</div>
+                                  <div>✍️ <strong>Topping Text:</strong> <span className="font-serif italic text-amber-300 font-bold">"{ord.customCakeDetails.toppingMessage || 'No text requested'}"</span></div>
+                                </div>
+                              )}
+
+                              {/* Special Customer Notes & Design Vision */}
+                              {(ord.notes || ord.customCakeDetails?.specialInstructions) && (
+                                <div className="bg-amber-500/20 border border-amber-500/40 p-2 rounded-lg text-amber-200 font-semibold space-y-1">
+                                  <div className="text-[10px] uppercase font-black tracking-wider text-amber-400">📝 Special Design Vision & Customer Notes:</div>
+                                  {ord.customCakeDetails?.specialInstructions && (
+                                    <div>• <strong>Custom Cake Vision:</strong> {ord.customCakeDetails.specialInstructions}</div>
+                                  )}
+                                  {ord.notes && ord.notes !== ord.customCakeDetails?.specialInstructions && (
+                                    <div>• <strong>Order Checkout Note:</strong> {ord.notes}</div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Custom Reference Photo Image Preview */}
+                              {(() => {
+                                const refPhoto = ord.customCakeDetails?.referencePhotoUrl || ord.items?.find(i => i.imageUrl && i.imageUrl.length > 50)?.imageUrl;
+                                if (!refPhoto) return null;
+                                return (
+                                  <div className="pt-2 border-t border-amber-500/20">
+                                    <div className="text-[10px] font-bold text-amber-300 mb-1.5 flex items-center gap-1">
+                                      <FiCamera className="text-amber-400 text-xs" /> Customer Reference Photo Attachment:
+                                    </div>
+                                    <div className="relative group inline-block">
+                                      <img 
+                                        src={refPhoto} 
+                                        alt="Custom Cake Reference" 
+                                        onClick={() => setZoomedImageModal(refPhoto)}
+                                        className="w-28 h-28 object-cover rounded-xl border-2 border-amber-500/50 shadow-lg cursor-pointer group-hover:scale-105 transition"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setZoomedImageModal(refPhoto)}
+                                        className="absolute bottom-1 right-1 bg-black/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 px-2 py-0.5 rounded-lg text-[9px] font-bold flex items-center gap-1 shadow transition"
+                                      >
+                                        <FiMaximize2 /> Zoom Photo
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
                         </div>
@@ -285,7 +376,7 @@ export default function AdminOrders() {
         {/* Counter Receipt Modal */}
         {selectedReceipt && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#181820] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full space-y-6 text-white">
+            <div className="printable-receipt bg-[#181820] border border-amber-500/30 rounded-3xl p-6 max-w-md w-full space-y-6 text-white">
               
               <div className="flex justify-between items-center border-b border-amber-500/20 pb-4">
                 <div>
@@ -328,7 +419,21 @@ export default function AdminOrders() {
                     <div>⚖️ <strong>Weight:</strong> {selectedReceipt.customCakeDetails.weight}</div>
                     <div>📐 <strong>Shape:</strong> {selectedReceipt.customCakeDetails.shape}</div>
                     <div>✍️ <strong>Text on Cake:</strong> "{selectedReceipt.customCakeDetails.toppingMessage}"</div>
-                    {selectedReceipt.notes && <div className="text-amber-200">📝 <strong>Notes:</strong> {selectedReceipt.notes}</div>}
+                    {(selectedReceipt.notes || selectedReceipt.customCakeDetails.specialInstructions) && (
+                      <div className="text-amber-200 mt-1 pt-1 border-t border-amber-500/20 font-bold">
+                        📝 <strong>Customer Notes:</strong> {selectedReceipt.customCakeDetails.specialInstructions || selectedReceipt.notes}
+                      </div>
+                    )}
+                    {(selectedReceipt.customCakeDetails.referencePhotoUrl || selectedReceipt.items?.find(i => i.imageUrl && i.imageUrl.length > 50)?.imageUrl) && (
+                      <div className="mt-2 pt-1 border-t border-amber-500/20">
+                        <div className="text-[10px] font-bold text-amber-300 mb-1">📸 Reference Photo Attached:</div>
+                        <img 
+                          src={selectedReceipt.customCakeDetails.referencePhotoUrl || selectedReceipt.items?.find(i => i.imageUrl && i.imageUrl.length > 50)?.imageUrl} 
+                          alt="Cake Photo Reference" 
+                          className="w-20 h-20 object-cover rounded-lg border border-amber-500/40"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -506,6 +611,48 @@ export default function AdminOrders() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Full-Screen Custom Cake Photo Zoom Modal */}
+        {zoomedImageModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="relative max-w-4xl w-full bg-[#14141a] border border-amber-500/40 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+              <div className="flex justify-between items-center border-b border-amber-500/20 pb-3">
+                <h3 className="text-base font-bold font-serif text-amber-400 flex items-center gap-2">
+                  <FiCamera className="text-amber-400" />
+                  Custom Cake Design Reference Photo (High Resolution)
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setZoomedImageModal(null)}
+                  className="p-1.5 text-gray-400 hover:text-white rounded-xl bg-white/5 hover:bg-white/10 transition"
+                >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+
+              <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-black/60 rounded-2xl p-2 border border-amber-500/20">
+                <img 
+                  src={zoomedImageModal} 
+                  alt="Custom Cake High Resolution Zoom" 
+                  className="max-h-[70vh] w-auto max-w-full object-contain rounded-xl shadow-2xl"
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-2 text-xs">
+                <span className="text-gray-400 font-mono">
+                  Timergara Pastry Chef Inspection Console
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setZoomedImageModal(null)}
+                  className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition"
+                >
+                  Close Viewer
+                </button>
+              </div>
             </div>
           </div>
         )}

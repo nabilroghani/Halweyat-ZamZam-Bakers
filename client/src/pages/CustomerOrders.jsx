@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { OrderService } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
+import { getSocket } from '../store/useSocket';
 import { FiShoppingBag, FiClock, FiCheckCircle, FiUser, FiMapPin, FiPhone, FiShield, FiKey } from 'react-icons/fi';
 
 export default function CustomerOrders() {
@@ -21,6 +22,25 @@ export default function CustomerOrders() {
       }
     };
     fetchMyOrders();
+  }, []);
+
+  // 🔌 Socket.IO Real-Time: Live order status updates for customer
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleStatusUpdated = (data) => {
+      setOrders(prev => prev.map(o =>
+        (o._id === data._id || o.orderId === data.orderId) 
+          ? { ...o, status: data.status, cancelReason: data.cancelReason } 
+          : o
+      ));
+    };
+
+    socket.on('order-status-updated', handleStatusUpdated);
+
+    return () => {
+      socket.off('order-status-updated', handleStatusUpdated);
+    };
   }, []);
 
   return (
