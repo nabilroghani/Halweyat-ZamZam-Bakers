@@ -14,7 +14,7 @@ const httpServer = createServer(app);
 // Socket.IO Real-Time Server
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
   }
 });
@@ -55,7 +55,7 @@ export let inMemoryDB = {
 };
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 
 // API Routes

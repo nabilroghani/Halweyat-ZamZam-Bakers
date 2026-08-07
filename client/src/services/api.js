@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const RAW_SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const CLEAN_SERVER_URL = RAW_SERVER_URL.replace(/\/+$/, '');
+const API_BASE_URL = CLEAN_SERVER_URL.endsWith('/api') ? CLEAN_SERVER_URL : `${CLEAN_SERVER_URL}/api`;
 
 export const fetchAPI = async (endpoint, options = {}) => {
   const token = localStorage.getItem('zamzam_auth_token');

@@ -13,5 +13,6 @@ client/.env
 
 # Build outputs
 dist
+client/dist
 build
 .cache
